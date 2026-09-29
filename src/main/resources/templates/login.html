@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Iniciar sesión · JequeTech</title>
+    <link rel="icon" th:href="@{/img/favicon.svg}" />
+    <link rel="stylesheet" th:href="@{/vendor/bootstrap.min.css}" />
+    <link rel="stylesheet" th:href="@{/css/app.css}" />
+  </head>
+  <body class="login-body">
+    <main class="container login-container">
+      <div class="row g-0 login-panel">
+        <section class="col-lg-6 login-story">
+          <span class="eyebrow">JEQUETECH SOLUTIONS S.A.C.</span>
+          <div>
+            <span class="story-tag">Servicio técnico, conectado.</span>
+            <h1>
+              Cada equipo.<br />Cada atención.<br /><em>Todo en orden.</em>
+            </h1>
+            <p>
+              Un espacio para organizar las órdenes de servicio y acompañar cada
+              atención, desde la recepción hasta la entrega.
+            </p>
+          </div>
+          <div class="story-footer">
+            CHILETE <span>—</span> VALLE DEL JEQUETEPEQUE
+          </div>
+        </section>
+        <section class="col-lg-6 login-form">
+          <img
+            class="login-logo"
+            th:src="@{/img/jequetech-logo.png}"
+            alt="JequeTech Solutions S.A.C."
+          />
+          <div class="eyebrow text-secondary mt-4">BIENVENIDO A TU ESPACIO</div>
+          <h2>Iniciar sesión</h2>
+          <p class="text-secondary">Ingresa tus credenciales para continuar.</p>
+          <div
+            th:if="${error}"
+            class="alert alert-danger"
+            role="alert"
+            th:text="${error}"
+          ></div>
+          <div
+            th:if="${param.salida}"
+            class="alert alert-success"
+            role="status"
+          >
+            Sesión cerrada correctamente.
+          </div>
+          <form th:action="@{/login}" method="post">
+            <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+            <div class="mb-3">
+              <label class="form-label" for="correo">Correo electrónico</label
+              ><input
+                id="correo"
+                name="correo"
+                type="email"
+                class="form-control"
+                required
+                maxlength="120"
+                autocomplete="username"
+                placeholder="nombre@jequetech.test"
+                th:value="${correo}"
+              />
+            </div>
+            <div class="mb-4">
+              <label class="form-label" for="clave">Contraseña</label
+              ><input
+                id="clave"
+                name="clave"
+                type="password"
+                class="form-control"
+                required
+                maxlength="128"
+                autocomplete="current-password"
+                placeholder="Tu contraseña"
+              />
+            </div>
+            <button class="btn btn-primary w-100">
+              Ingresar al sistema <span aria-hidden="true">→</span>
+            </button>
+          </form>
+          <details class="demo-access">
+            <summary>Accesos para la demostración</summary>
+            <p>Contraseña común: <code>Demo2026!</code></p>
+            <ul>
+              <li>Recepción: <code>recepcion@jequetech.test</code></li>
+              <li>Administrador: <code>admin@jequetech.test</code></li>
+              <li>Técnico: <code>tecnico@jequetech.test</code></li>
+              <li>Otra técnica: <code>ana@jequetech.test</code></li>
+            </ul>
+          </details>
+          <p class="login-note">
+            Versión académica · Los datos se reinician al detener el servidor.
+          </p>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>

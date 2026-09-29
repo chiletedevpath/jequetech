@@ -1,0 +1,73 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Técnicos', ~{::main})}"
+>
+  <body>
+    <main>
+      <a class="back-link" th:href="@{/tecnicos}">← Volver a técnicos</a>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">TÉCNICOS</div>
+          <h1
+            th:text="${id == null} ? 'Nuevo técnico' : 'Editar registro'"
+          ></h1>
+          <p>Los campos marcados con * son obligatorios.</p>
+        </div>
+      </div>
+      <form
+        class="card form-card"
+        th:action="${id == null} ? @{/tecnicos} : @{/tecnicos/{id}/editar(id=${id})}"
+        method="post"
+        th:object="${form}"
+      >
+        <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="nombres">Nombres *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{nombres}"
+              maxlength="100"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="especialidad">Especialidad *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{especialidad}"
+              maxlength="100"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="telefono">Teléfono *</label
+            ><input
+              class="form-control"
+              type="tel"
+              th:field="*{telefono}"
+              maxlength="20"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="activo" class="form-label">Estado *</label
+            ><select class="form-select" th:field="*{activo}">
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-outline-secondary" th:href="@{/tecnicos}"
+            >Cancelar</a
+          ><button class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

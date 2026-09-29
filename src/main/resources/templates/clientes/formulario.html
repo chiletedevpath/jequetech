@@ -1,0 +1,86 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Clientes', ~{::main})}"
+>
+  <body>
+    <main>
+      <a class="back-link" th:href="@{/clientes}">← Volver a clientes</a>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">CLIENTES</div>
+          <h1
+            th:text="${id == null} ? 'Nuevo cliente' : 'Editar registro'"
+          ></h1>
+          <p>Los campos marcados con * son obligatorios.</p>
+        </div>
+      </div>
+      <form
+        class="card form-card"
+        th:action="${id == null} ? @{/clientes} : @{/clientes/{id}/editar(id=${id})}"
+        method="post"
+        th:object="${form}"
+      >
+        <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="nombres"
+              >Nombres o razón social *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{nombres}"
+              maxlength="100"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="apellidos">Apellidos</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{apellidos}"
+              maxlength="100"
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="documento">Documento *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{documento}"
+              maxlength="20"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="telefono">Teléfono *</label
+            ><input
+              class="form-control"
+              type="tel"
+              th:field="*{telefono}"
+              maxlength="20"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="correo">Correo electrónico *</label
+            ><input
+              class="form-control"
+              type="email"
+              th:field="*{correo}"
+              maxlength="120"
+              required
+            />
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-outline-secondary" th:href="@{/clientes}"
+            >Cancelar</a
+          ><button class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

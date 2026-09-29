@@ -1,0 +1,63 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Técnicos', ~{::main})}"
+>
+  <body>
+    <main>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">DIRECTORIO</div>
+          <h1>Técnicos</h1>
+          <p>Personal responsable de la atención de los equipos.</p>
+        </div>
+        <a class="btn btn-primary" th:href="@{/tecnicos/nuevo}"
+          >+ Nuevo técnico</a
+        >
+      </div>
+      <p class="text-secondary">
+        Después de registrar al técnico, vincúlalo a una cuenta desde Usuarios
+        para habilitar su trabajo en el sistema.
+      </p>
+      <section class="card">
+        <div class="table-responsive">
+          <table class="table align-middle mb-0">
+            <caption class="visually-hidden">
+              Técnicos
+            </caption>
+            <thead>
+              <tr>
+                <th scope="col">Nombre</th>
+                <th scope="col">Especialidad</th>
+                <th scope="col">Teléfono</th>
+                <th scope="col">Estado</th>
+                <th scope="col">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="r : ${registros}">
+                <td th:text="${r.nombres}"></td>
+                <td th:text="${r.especialidad}"></td>
+                <td th:text="${r.telefono}"></td>
+                <td th:text="${r.activo ? 'Activo' : 'Inactivo'}"></td>
+                <td>
+                  <div class="d-flex gap-2">
+                    <a
+                      class="btn btn-sm btn-light"
+                      th:href="@{/tecnicos/{id}/editar(id=${r.id})}"
+                      >Editar</a
+                    >
+                  </div>
+                </td>
+              </tr>
+              <tr th:if="${#lists.isEmpty(registros)}">
+                <td colspan="7" class="empty-state">Aún no hay registros.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

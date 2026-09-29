@@ -1,0 +1,85 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Equipos', ~{::main})}"
+>
+  <body>
+    <main>
+      <a class="back-link" th:href="@{/equipos}">← Volver a equipos</a>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">EQUIPOS</div>
+          <h1 th:text="${id == null} ? 'Nuevo equipo' : 'Editar registro'"></h1>
+          <p>Los campos marcados con * son obligatorios.</p>
+        </div>
+      </div>
+      <form
+        class="card form-card"
+        th:action="${id == null} ? @{/equipos} : @{/equipos/{id}/editar(id=${id})}"
+        method="post"
+        th:object="${form}"
+      >
+        <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="clienteId" class="form-label"
+              >Cliente propietario *</label
+            ><select class="form-select" th:field="*{clienteId}" required>
+              <option value="">Selecciona un cliente</option>
+              <option
+                th:each="c : ${catalogos.clientes()}"
+                th:value="${c.id}"
+                th:text="${c.nombreCompleto()}"
+              ></option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="tipo">Tipo de equipo *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{tipo}"
+              maxlength="50"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="marca">Marca *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{marca}"
+              maxlength="60"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="modelo">Modelo *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{modelo}"
+              maxlength="80"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="numeroSerie">Número de serie *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{numeroSerie}"
+              maxlength="80"
+              required
+            />
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-outline-secondary" th:href="@{/equipos}">Cancelar</a
+          ><button class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

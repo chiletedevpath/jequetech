@@ -1,0 +1,300 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Detalle de orden', ~{::main})}"
+>
+  <body>
+    <main>
+      <a class="back-link" th:href="@{/ordenes}">← Volver a órdenes</a>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">DETALLE Y SEGUIMIENTO</div>
+          <h1 th:text="'Orden ' + ${orden.codigo()}"></h1>
+          <p
+            th:text="'Recibida el ' + ${#temporals.format(orden.fechaRecepcion,'dd MMMM yyyy')}"
+          ></p>
+        </div>
+        <div class="d-flex flex-wrap align-items-center gap-2">
+          <span
+            class="badge status"
+            th:classappend="${orden.estado.name()}"
+            th:text="${orden.estado.etiqueta}"
+          ></span
+          ><a
+            th:if="${esRecepcion and orden.estado.ordinal() &lt; 2}"
+            class="btn btn-outline-secondary"
+            th:href="@{/ordenes/{id}/editar(id=${orden.id})}"
+            >Editar recepción</a
+          >
+        </div>
+      </div>
+      <section class="card p-4 mb-4">
+        <h2 class="h6 mb-4">Progreso de la atención</h2>
+        <ol class="progress-steps">
+          <li
+            th:each="e : ${estados}"
+            th:classappend="${e.ordinal() &lt;= orden.estado.ordinal()} ? 'done'"
+            th:attr="aria-current=${e == orden.estado ? 'step' : null}"
+          >
+            <span class="step-dot" th:text="${e.ordinal()+1}"></span
+            ><span th:text="${e.etiqueta}"></span>
+          </li>
+        </ol>
+      </section>
+      <div class="row g-4">
+        <div class="col-xl-8">
+          <section class="card p-4 mb-4">
+            <h2>Información de la orden</h2>
+            <dl class="row detail-grid">
+              <div class="col-md-6">
+                <dt>Cliente</dt>
+                <dd
+                  th:text="${catalogos.cliente(orden.clienteId).nombreCompleto()}"
+                ></dd>
+              </div>
+              <div class="col-md-6">
+                <dt>Equipo</dt>
+                <dd
+                  th:text="${catalogos.equipo(orden.equipoId).descripcion()}"
+                ></dd>
+              </div>
+              <div class="col-md-6">
+                <dt>Número de serie</dt>
+                <dd
+                  th:text="${catalogos.equipo(orden.equipoId).numeroSerie}"
+                ></dd>
+              </div>
+              <div class="col-md-6">
+                <dt>Prioridad</dt>
+                <dd th:text="${orden.prioridad.etiqueta}"></dd>
+              </div>
+              <div class="col-12">
+                <dt>Falla reportada</dt>
+                <dd
+                  class="preserve-text"
+                  th:text="${orden.fallaReportada}"
+                ></dd>
+              </div>
+              <div class="col-12">
+                <dt>Observaciones</dt>
+                <dd
+                  class="preserve-text"
+                  th:text="${#strings.isEmpty(orden.observaciones) ? 'Sin observaciones adicionales.' : orden.observaciones}"
+                ></dd>
+              </div>
+            </dl>
+            <a
+              th:if="${esRecepcion}"
+              class="text-link"
+              th:href="@{/equipos/{id}/historial(id=${orden.equipoId})}"
+              >Consultar historial de este equipo →</a
+            >
+          </section>
+          <section class="card p-4 mb-4">
+            <div class="section-heading p-0 mb-3">
+              <h2>Diagnóstico técnico</h2>
+              <span
+                class="small text-secondary"
+                th:if="${orden.diagnostico != null}"
+                th:text="${#temporals.format(orden.diagnostico.fecha,'dd/MM/yyyy')}"
+              ></span>
+            </div>
+            <p
+              class="preserve-text"
+              th:text="${orden.diagnostico != null ? orden.diagnostico.descripcion : 'Aún no se ha registrado un diagnóstico.'}"
+            ></p>
+            <form
+              th:if="${esTecnico and (orden.estado.name() == 'ASIGNADA' or orden.estado.name() == 'EN_DIAGNOSTICO')}"
+              th:action="@{/ordenes/{id}/diagnostico(id=${orden.id})}"
+              method="post"
+            >
+              <input
+                type="hidden"
+                name="_csrf"
+                th:value="${session.csrf}"
+              /><input
+                type="hidden"
+                name="version"
+                th:value="${orden.version}"
+              /><label class="form-label" for="diagnostico"
+                >Resultado de la evaluación *</label
+              ><textarea
+                class="form-control mb-3"
+                id="diagnostico"
+                name="descripcion"
+                rows="4"
+                required
+                maxlength="2000"
+                th:text="${orden.diagnostico != null ? orden.diagnostico.descripcion : ''}"
+              ></textarea
+              ><button class="btn btn-primary">Guardar diagnóstico</button>
+            </form>
+          </section>
+          <section class="card p-4">
+            <h2>Trabajos realizados</h2>
+            <p th:if="${#lists.isEmpty(orden.trabajos)}" class="text-secondary">
+              Las actividades técnicas aparecerán aquí.
+            </p>
+            <div th:each="t : ${orden.trabajos}" class="work-entry">
+              <small
+                th:text="${#temporals.format(t.fecha,'dd/MM/yyyy')}"
+              ></small>
+              <p class="preserve-text mb-0" th:text="${t.descripcion}"></p>
+            </div>
+            <form
+              th:if="${esTecnico and orden.diagnostico != null and (orden.estado.name() == 'EN_DIAGNOSTICO' or orden.estado.name() == 'EN_ATENCION')}"
+              th:action="@{/ordenes/{id}/trabajos(id=${orden.id})}"
+              method="post"
+            >
+              <input
+                type="hidden"
+                name="_csrf"
+                th:value="${session.csrf}"
+              /><input
+                type="hidden"
+                name="version"
+                th:value="${orden.version}"
+              /><label class="form-label" for="trabajo"
+                >Actividad realizada *</label
+              ><textarea
+                class="form-control mb-3"
+                id="trabajo"
+                name="descripcion"
+                rows="3"
+                required
+                maxlength="2000"
+              ></textarea
+              ><button class="btn btn-primary">Registrar trabajo</button>
+            </form>
+          </section>
+        </div>
+        <div class="col-xl-4">
+          <section class="card p-4 mb-4">
+            <div class="eyebrow">RESPONSABLE DE ATENCIÓN</div>
+            <h2
+              class="mt-2"
+              th:text="${orden.tecnicoId != null ? catalogos.tecnico(orden.tecnicoId).nombres : 'Sin técnico asignado'}"
+            ></h2>
+            <p
+              class="text-secondary"
+              th:text="${orden.tecnicoId != null ? catalogos.tecnico(orden.tecnicoId).especialidad : 'Asigna un responsable para continuar.'}"
+            ></p>
+            <form
+              th:if="${esRecepcion and orden.estado.ordinal() &lt; 2}"
+              th:action="@{/ordenes/{id}/asignar(id=${orden.id})}"
+              method="post"
+            >
+              <input
+                type="hidden"
+                name="_csrf"
+                th:value="${session.csrf}"
+              /><input
+                type="hidden"
+                name="version"
+                th:value="${orden.version}"
+              /><label for="tecnicoId" class="form-label"
+                >Técnico disponible</label
+              ><select
+                id="tecnicoId"
+                name="tecnicoId"
+                class="form-select mb-3"
+                required
+              >
+                <option value="">Selecciona un técnico</option>
+                <option
+                  th:each="t : ${tecnicos}"
+                  th:value="${t.id}"
+                  th:text="${t.nombres}"
+                  th:selected="${t.id == orden.tecnicoId}"
+                ></option></select
+              ><button class="btn btn-primary w-100">Asignar técnico</button>
+            </form>
+            <div th:if="${esTecnico and siguiente != null}">
+              <hr />
+              <div class="eyebrow">SIGUIENTE PASO</div>
+              <p class="mt-2" th:text="${siguiente.etiqueta}"></p>
+              <button
+                class="btn btn-primary w-100"
+                type="button"
+                data-bs-toggle="modal"
+                data-bs-target="#cambiarEstado"
+              >
+                Actualizar estado
+              </button>
+            </div>
+          </section>
+          <section class="card p-4">
+            <h2>Historial de la orden</h2>
+            <ol class="timeline">
+              <li th:each="e : ${orden.historial}">
+                <strong th:text="${e.descripcion}"></strong
+                ><small
+                  th:text="${#temporals.format(e.fecha,'dd/MM/yyyy HH:mm')}"
+                ></small
+                ><span th:text="${e.autor}"></span>
+              </li>
+            </ol>
+          </section>
+        </div>
+      </div>
+      <div
+        th:if="${esTecnico and siguiente != null}"
+        class="modal fade"
+        id="cambiarEstado"
+        tabindex="-1"
+        aria-labelledby="modalTitulo"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title fs-5" id="modalTitulo">
+                Confirmar cambio de estado
+              </h2>
+              <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="modal"
+                aria-label="Cerrar"
+              ></button>
+            </div>
+            <form
+              th:action="@{/ordenes/{id}/estado(id=${orden.id})}"
+              method="post"
+            >
+              <div class="modal-body">
+                <input
+                  type="hidden"
+                  name="_csrf"
+                  th:value="${session.csrf}"
+                /><input
+                  type="hidden"
+                  name="version"
+                  th:value="${orden.version}"
+                /><input type="hidden" name="estado" th:value="${siguiente}" />
+                <p>
+                  La orden <strong th:text="${orden.codigo()}"></strong> pasará
+                  al estado <strong th:text="${siguiente.etiqueta}"></strong>.
+                </p>
+                <p class="text-secondary mb-0">
+                  Confirma que el avance corresponde a la atención realizada. El
+                  cambio quedará registrado en el historial.
+                </p>
+              </div>
+              <div class="modal-footer">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary"
+                  data-bs-dismiss="modal"
+                >
+                  Cancelar</button
+                ><button class="btn btn-primary">Confirmar cambio</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

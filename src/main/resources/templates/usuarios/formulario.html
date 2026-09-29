@@ -1,0 +1,110 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Usuarios', ~{::main})}"
+>
+  <body>
+    <main>
+      <a class="back-link" th:href="@{/usuarios}">← Volver a usuarios</a>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">USUARIOS</div>
+          <h1
+            th:text="${id == null} ? 'Nuevo usuario' : 'Editar registro'"
+          ></h1>
+          <p>Los campos marcados con * son obligatorios.</p>
+        </div>
+      </div>
+      <form
+        class="card form-card"
+        th:action="${id == null} ? @{/usuarios} : @{/usuarios/{id}/editar(id=${id})}"
+        method="post"
+        th:object="${form}"
+      >
+        <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label" for="nombre">Nombre *</label
+            ><input
+              class="form-control"
+              type="text"
+              th:field="*{nombre}"
+              maxlength="100"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label class="form-label" for="correo">Correo electrónico *</label
+            ><input
+              class="form-control"
+              type="email"
+              th:field="*{correo}"
+              maxlength="120"
+              required
+            />
+          </div>
+          <div class="col-md-6">
+            <label for="clave" class="form-label">Contraseña</label
+            ><input
+              class="form-control"
+              type="password"
+              id="clave"
+              name="clave"
+              autocomplete="new-password"
+              minlength="8"
+              maxlength="128"
+              th:required="${id == null}"
+            />
+            <div class="form-text">
+              Entre 8 y 128 caracteres. Al editar, déjala vacía para
+              conservarla.
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label for="rol" class="form-label">Rol *</label
+            ><select
+              class="form-select"
+              th:field="*{rol}"
+              required
+              data-role-select
+            >
+              <option
+                th:each="r : ${roles}"
+                th:value="${r}"
+                th:text="${r.etiqueta}"
+              ></option>
+            </select>
+          </div>
+          <div class="col-md-6">
+            <label for="activo" class="form-label">Estado *</label
+            ><select class="form-select" th:field="*{activo}">
+              <option value="true">Activo</option>
+              <option value="false">Inactivo</option>
+            </select>
+          </div>
+          <div class="col-md-6" data-technician-link>
+            <label for="tecnicoId" class="form-label">Técnico vinculado *</label
+            ><select class="form-select" th:field="*{tecnicoId}">
+              <option value="">Selecciona un técnico</option>
+              <option
+                th:each="t : ${catalogos.tecnicos()}"
+                th:value="${t.id}"
+                th:text="${t.nombres}"
+              ></option>
+            </select>
+            <div class="form-text">
+              Una cuenta por técnico. Registra primero al técnico en su
+              directorio.
+            </div>
+          </div>
+        </div>
+        <div class="form-actions">
+          <a class="btn btn-outline-secondary" th:href="@{/usuarios}"
+            >Cancelar</a
+          ><button class="btn btn-primary">Guardar cambios</button>
+        </div>
+      </form>
+    </main>
+  </body>
+</html>

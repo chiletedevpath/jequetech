@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+  <body>
+    <div th:fragment="tabla" class="table-responsive">
+      <table class="table align-middle mb-0">
+        <caption class="visually-hidden">
+          Órdenes de servicio técnico
+        </caption>
+        <thead>
+          <tr>
+            <th scope="col">Orden / recepción</th>
+            <th scope="col">Cliente y equipo</th>
+            <th scope="col">Responsable</th>
+            <th scope="col">Prioridad</th>
+            <th scope="col">Estado</th>
+            <th scope="col"><span class="visually-hidden">Acción</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="o : ${ordenes}">
+            <td>
+              <a
+                class="order-link"
+                th:href="@{/ordenes/{id}(id=${o.id})}"
+                th:text="${o.codigo()}"
+              ></a
+              ><small
+                class="cell-sub"
+                th:text="${#temporals.format(o.fechaRecepcion,'dd MMM yyyy')}"
+              ></small>
+            </td>
+            <td>
+              <strong
+                class="cell-title"
+                th:text="${catalogos.cliente(o.clienteId).nombreCompleto()}"
+              ></strong
+              ><small
+                class="cell-sub"
+                th:text="${catalogos.equipo(o.equipoId).descripcion()}"
+              ></small>
+            </td>
+            <td
+              th:text="${o.tecnicoId != null ? catalogos.tecnico(o.tecnicoId).nombres : 'Sin asignar'}"
+            ></td>
+            <td>
+              <span
+                class="priority"
+                th:classappend="${o.prioridad.name()}"
+                th:text="${o.prioridad.etiqueta}"
+              ></span>
+            </td>
+            <td>
+              <span
+                class="badge status"
+                th:classappend="${o.estado.name()}"
+                th:text="${o.estado.etiqueta}"
+              ></span>
+            </td>
+            <td>
+              <a
+                class="btn btn-sm btn-light"
+                th:href="@{/ordenes/{id}(id=${o.id})}"
+                th:aria-label="'Ver orden ' + ${o.codigo()}"
+                >Ver →</a
+              >
+            </td>
+          </tr>
+          <tr th:if="${#lists.isEmpty(ordenes)}">
+            <td colspan="6" class="empty-state">
+              <strong>No se encontraron órdenes</strong>
+              <p>Prueba con otros filtros o registra una nueva atención.</p>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

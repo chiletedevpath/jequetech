@@ -1,0 +1,101 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Panel principal', ~{::main})}"
+>
+  <body>
+    <main>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">VISTA GENERAL</div>
+          <h1>Panel principal</h1>
+          <p>El estado de tus servicios, en un solo lugar.</p>
+        </div>
+        <a
+          th:if="${esRecepcion}"
+          class="btn btn-primary"
+          th:href="@{/ordenes/nueva}"
+          >+ Nueva orden</a
+        >
+      </div>
+      <section class="welcome-banner">
+        <div>
+          <span class="eyebrow">ATENCIÓN CON TRAZABILIDAD</span>
+          <h2>Cada servicio tiene su historia.</h2>
+          <p
+            th:text="${esTecnico} ? 'Consulta tus órdenes asignadas y registra el avance de cada atención.' : 'Organiza la recepción, coordina la atención y consulta el avance de cada equipo.'"
+          ></p>
+          <a th:href="@{/ordenes}"
+            >Ir a las órdenes <span aria-hidden="true">↗</span></a
+          >
+        </div>
+        <div class="banner-mark" aria-hidden="true">JT<span>·</span></div>
+      </section>
+      <div class="row g-3 my-2">
+        <div class="col-6 col-xl-3">
+          <a class="card metric" th:href="@{/ordenes}"
+            ><span>Total de órdenes</span><strong th:text="${total}"></strong
+            ><small>Servicios registrados</small></a
+          >
+        </div>
+        <div class="col-6 col-xl-3">
+          <a class="card metric" th:href="@{/ordenes(estado='REGISTRADA')}"
+            ><span>Por asignar</span
+            ><strong
+              th:text="${conteos[T(pe.jequetech.model.EstadoOrden).REGISTRADA]}"
+            ></strong
+            ><small>Esperan un responsable</small></a
+          >
+        </div>
+        <div class="col-6 col-xl-3">
+          <a class="card metric" th:href="@{/ordenes(estado='EN_ATENCION')}"
+            ><span>En atención</span
+            ><strong
+              th:text="${conteos[T(pe.jequetech.model.EstadoOrden).EN_ATENCION]}"
+            ></strong
+            ><small>Trabajo técnico en curso</small></a
+          >
+        </div>
+        <div class="col-6 col-xl-3">
+          <a class="card metric" th:href="@{/ordenes(estado='FINALIZADA')}"
+            ><span>Finalizadas</span
+            ><strong
+              th:text="${conteos[T(pe.jequetech.model.EstadoOrden).FINALIZADA]}"
+            ></strong
+            ><small>Listas para entregar</small></a
+          >
+        </div>
+      </div>
+      <section class="card mt-4">
+        <div class="section-heading">
+          <div>
+            <h2>Órdenes recientes</h2>
+            <p>Las últimas atenciones registradas.</p>
+          </div>
+          <a th:href="@{/ordenes}" class="text-link">Ver todas →</a>
+        </div>
+        <div th:replace="~{fragments/ordenes :: tabla}"></div>
+      </section>
+      <div class="row g-3 mt-2">
+        <div class="col-md-8">
+          <section class="card p-4 h-100">
+            <h2 class="h6">Un proceso, seis etapas</h2>
+            <div class="flow-summary">
+              <span th:each="e : ${estados}" th:text="${e.etiqueta}"></span>
+            </div>
+          </section>
+        </div>
+        <div class="col-md-4">
+          <section class="card p-4 h-100">
+            <h2 class="h6">Tu espacio de trabajo</h2>
+            <p
+              class="mb-0 text-secondary"
+              th:text="${actor.rol.etiqueta} + ' · Opciones según tu función.'"
+            ></p>
+          </section>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

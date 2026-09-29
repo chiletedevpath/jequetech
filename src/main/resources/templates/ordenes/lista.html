@@ -1,0 +1,68 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Órdenes de servicio', ~{::main})}"
+>
+  <body>
+    <main>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">GESTIÓN Y SEGUIMIENTO</div>
+          <h1
+            th:text="${modoSeguimiento == true} ? 'Seguimiento de órdenes' : (${esTecnico} ? 'Mis órdenes asignadas' : 'Órdenes de servicio')"
+          ></h1>
+          <p>Consulta cada atención y su estado actual.</p>
+        </div>
+        <a
+          th:if="${esRecepcion}"
+          class="btn btn-primary"
+          th:href="@{/ordenes/nueva}"
+          >+ Nueva orden</a
+        >
+      </div>
+      <section class="card">
+        <form
+          class="row g-3 filter-bar"
+          th:action="${modoSeguimiento == true} ? @{/seguimiento} : @{/ordenes}"
+          method="get"
+        >
+          <div class="col-md-6">
+            <label for="q" class="form-label">Buscar orden</label
+            ><input
+              class="form-control"
+              id="q"
+              name="q"
+              th:value="${q}"
+              placeholder="Código, cliente, equipo o serie"
+              maxlength="120"
+            />
+          </div>
+          <div class="col-md-3">
+            <label class="form-label" for="estado">Estado</label
+            ><select id="estado" name="estado" class="form-select">
+              <option value="">Todos los estados</option>
+              <option
+                th:each="e : ${estados}"
+                th:value="${e}"
+                th:text="${e.etiqueta}"
+                th:selected="${e == filtroEstado}"
+              ></option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end gap-2">
+            <button class="btn btn-primary">Buscar</button
+            ><a class="btn btn-outline-secondary" th:href="@{/ordenes}"
+              >Limpiar</a
+            >
+          </div>
+        </form>
+        <div
+          class="results-label"
+          th:text="${#lists.size(ordenes)} + ' órdenes encontradas'"
+        ></div>
+        <div th:replace="~{fragments/ordenes :: tabla}"></div>
+      </section>
+    </main>
+  </body>
+</html>

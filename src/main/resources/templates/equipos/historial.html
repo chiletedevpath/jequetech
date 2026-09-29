@@ -1,0 +1,37 @@
+<!doctype html>
+<html
+  lang="es"
+  xmlns:th="http://www.thymeleaf.org"
+  th:replace="~{fragments/layout :: page('Historial del equipo', ~{::main})}"
+>
+  <body>
+    <main>
+      <a class="back-link" th:href="@{/equipos}">← Volver a equipos</a>
+      <div class="page-heading">
+        <div>
+          <div class="eyebrow">HISTORIAL DE SERVICIOS</div>
+          <h1 th:text="${equipo.descripcion()}"></h1>
+          <p
+            th:text="'Serie: ' + ${equipo.numeroSerie} + ' · Cliente: ' + ${catalogos.cliente(equipo.clienteId).nombreCompleto()}"
+          ></p>
+        </div>
+      </div>
+      <section class="card">
+        <div class="section-heading">
+          <h2>Atenciones registradas</h2>
+          <span
+            class="small text-secondary"
+            th:text="${#lists.size(ordenes)} + ' servicios'"
+          ></span>
+        </div>
+        <p class="empty-state m-0" th:if="${#lists.isEmpty(ordenes)}">
+          Este equipo aún no tiene historial de atenciones registrado.
+        </p>
+        <div
+          th:if="${!#lists.isEmpty(ordenes)}"
+          th:insert="~{fragments/ordenes :: tabla}"
+        ></div>
+      </section>
+    </main>
+  </body>
+</html>
