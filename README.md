@@ -6,7 +6,7 @@ La aplicación integra **Java, Spring Boot 4.0.8, Spring Web MVC, Thymeleaf y Bo
 
 ## Estado del proyecto
 
-Documentación actualizada el **29 de septiembre de 2026**. Versión **0.1.0**, correspondiente a una demostración funcional del **APF2**. La última verificación funcional registrada corresponde al 28 de septiembre.
+Documentación actualizada el **20 de octubre de 2026**. Aplicación **0.1.0 / APF2**, con el primer hito del APF3 dedicado al esquema MySQL. La web sigue usando repositorios en memoria; todavía no se conecta a esta base.
 
 | Área | Estado actual |
 | --- | --- |
@@ -17,7 +17,8 @@ Documentación actualizada el **29 de septiembre de 2026**. Versión **0.1.0**, 
 | Interfaz | Logo propio de la propuesta, paleta azul/turquesa y navegación responsive |
 | Almacenamiento | Repositorios en memoria con datos ficticios; sin persistencia entre reinicios |
 | Verificación registrada | 17 pruebas de integración aprobadas y recorrido de navegador PASS |
-| Próximas etapas | MySQL/JPA, Spring Validator y posteriormente Spring Security |
+| Base relacional APF3 | Esquema MySQL de ocho tablas y entorno Docker independiente |
+| Próximas etapas | Conectar JPA y transacciones, Spring Validator y posteriormente Spring Security |
 
 Las imágenes de maquetación del informe son referencias de diseño. La interfaz implementada y sus capturas constituyen la evidencia de esta versión. La entrega académica del Word y la exposición se completan por separado.
 
@@ -179,11 +180,69 @@ La configuración está en `src/main/resources/application.properties`: direcci�
 
 ## Continuidad
 
-APF3 incorporará MySQL, entidades JPA/Hibernate, relaciones y restricciones persistentes, transacciones, CRUD completo y Spring Validator. Los contratos de repositorio permiten sustituir la memoria sin trasladar las reglas de negocio a los controladores.
+El APF3 se desarrolla por hitos, cada uno con su verificación y commit local:
+
+1. **Esquema relacional MySQL:** ocho tablas, relaciones, restricciones, índices y prueba de integridad y reinicio. Implementado en este hito.
+2. **Persistencia de la aplicación:** entidades y adaptadores JPA/Hibernate, transacciones, generación de identificadores, bloqueo optimista y semilla que no sobrescriba registros. Pendiente.
+3. **Validación y cierre APF3:** Spring Validator, operaciones restantes según rúbrica y evidencias del recorrido persistente. Pendiente.
+
+Los contratos de repositorio permiten sustituir la memoria sin trasladar las reglas de negocio a los controladores. Hasta completar el segundo hito, registrar datos desde la web no escribe en MySQL.
 
 La fase final incorporará Spring Security, autenticación y autorización formales, pruebas de seguridad y despliegue adecuado. El acceso actual es una demostración de sesión con contraseñas derivadas mediante PBKDF2 y token antifalsificación; no equivale a la implementación final de Spring Security. JWT solo se incorporará si la arquitectura y las indicaciones del curso lo requieren.
 
 El informe Word original se conserva sin modificaciones. Las capturas, la exposición, el Project Charter y el DER deben revisarse y completarse en su entrega académica correspondiente. No se afirma una calificación ni el cumplimiento del proyecto final.
+
+## MySQL — hito 1 del APF3
+
+Archivos: [esquema](database/schema.sql), [pruebas SQL](database/tests/integridad.sql), [Compose](compose.yaml) y [prueba automatizada](scripts/check-database.ps1).
+
+```mermaid
+erDiagram
+    CLIENTE ||--o{ EQUIPO : posee
+    CLIENTE ||--o{ ORDEN_SERVICIO : solicita
+    EQUIPO ||--o{ ORDEN_SERVICIO : recibe
+    TECNICO o|--o{ ORDEN_SERVICIO : atiende
+    TECNICO o|--o| USUARIO : vincula
+    ORDEN_SERVICIO ||--o| DIAGNOSTICO : contiene
+    ORDEN_SERVICIO ||--o{ TRABAJO_REALIZADO : registra
+    ORDEN_SERVICIO ||--o{ EVENTO_ORDEN : conserva
+```
+
+El técnico puede existir sin cuenta durante el alta. Todo usuario con rol `TECNICO` exige un técnico vinculado; los demás roles no admiten ese vínculo. La relación compuesta equipo–cliente impide registrar una orden para un equipo ajeno o cambiar el propietario de un equipo con órdenes.
+
+El esquema utiliza InnoDB, claves autoincrementales y `utf8mb4_0900_as_ci` (distingue acentos e ignora mayúsculas). El diagnóstico comparte la clave de su orden. Trabajos y eventos tienen identificador global y número único dentro de cada orden. El autor del evento se conserva como texto histórico. No hay borrados en cascada. La columna `version` prepara la detección de escrituras obsoletas; el siguiente hito implementará `@Version` y las transacciones en JPA.
+
+Las comprobaciones entre registros —cuenta y técnico activos, secuencia de estados, diagnóstico y trabajo previos a finalizar— siguen siendo responsabilidad del servicio. Las fechas futuras se validan allí. Las restricciones SQL no sustituyen esas reglas ni aplican por sí solas un flujo de atención.
+
+### Levantar la base local
+
+Requiere Docker Desktop con contenedores Linux. Desde la raíz:
+
+```powershell
+Copy-Item .env.example .env
+```
+
+Editar `.env` y completar `MYSQL_ROOT_PASSWORD` y `MYSQL_PASSWORD` con contraseñas locales distintas. `MYSQL_PORT` vale `3307` por defecto y puede cambiarse si está ocupado. `.env` queda excluido de Git y del ZIP.
+
+```powershell
+docker compose up -d --wait
+docker compose ps
+docker compose exec mysql mysql -u jequetech -p jequetech
+```
+
+El último comando solicita la contraseña de `MYSQL_PASSWORD`. Desde un cliente externo, usar `127.0.0.1:3307`, base y usuario `jequetech`. Se publica solo en la interfaz local. La imagen está fijada por digest para reproducir la prueba.
+
+La inicialización ejecuta `database/schema.sql` únicamente cuando el volumen está vacío. No crea cuentas web ni carga datos demo. `docker compose stop` detiene la base; `docker compose start --wait` la inicia conservando el volumen. `docker compose down` retira el contenedor y la red, conservando los datos. Añadir `-v` eliminaría el volumen y sus datos: no es necesario para el uso normal.
+
+Modificar el SQL no actualiza automáticamente una base existente. Los cambios posteriores necesitarán migraciones; este script inicial falla ante tablas existentes para evitar aparentar una actualización que no realizó. No contiene `DROP TABLE`.
+
+### Comprobar el esquema sin afectar bases existentes
+
+```powershell
+.\scripts\check-database.ps1
+```
+
+La prueba usa un contenedor de nombre único, contraseña aleatoria, sin puertos publicados y sin utilizar `.env`. Crea el esquema, verifica restricciones y rollback, y comprueba que un dato confirmado sobrevive al reinicio de MySQL. Al terminar elimina únicamente su contenedor y volumen efímeros. No prueba aún la persistencia de la web.
 
 ## Preparar entrega
 
@@ -191,7 +250,7 @@ El informe Word original se conserva sin modificaciones. Las capturas, la exposi
 .\scripts\package.ps1
 ```
 
-Genera `exports/jequetech-apf2-fuentes.zip` con código, wrapper, recursos y documentación. Excluye cachés, archivos temporales, capturas y resultados de compilación. El JAR ejecutable se obtiene con `verify` y puede entregarse por separado si el docente lo solicita.
+Genera `exports/jequetech-fuentes.zip` con código, wrapper, recursos, documentación y base relacional del hito actual. Excluye `.env`, cachés, archivos temporales, capturas y resultados de compilación. La copia `JequeTech-APF2-Docente` y el ZIP APF2 anteriores se conservan como entregas históricas y no se actualizan automáticamente. El JAR ejecutable se obtiene con `verify` y puede entregarse por separado si el docente lo solicita.
 
 Ejecutar nuevamente el empaquetado después de modificar código o documentación para mantener el ZIP sincronizado. Para usarlo en otra computadora, extraerlo en una carpeta y seguir la sección **Ejecutar en Windows**. El paquete no incluye un JDK ni las dependencias de Maven descargadas.
 
@@ -199,4 +258,5 @@ Ejecutar nuevamente el empaquetado después de modificar código o documentació
 
 - [Spring Boot: requisitos del sistema](https://docs.spring.io/spring-boot/4.0/system-requirements.html).
 - [Bootstrap 5.3: descarga y distribución](https://getbootstrap.com/docs/5.3/getting-started/download/). Se conserva su licencia MIT en `static/vendor/`.
+- [MySQL 8.4: creación de tablas y restricciones](https://dev.mysql.com/doc/refman/8.4/en/create-table.html) e [inicialización de la imagen oficial](https://hub.docker.com/_/mysql).
 - El logo fue generado específicamente para esta propuesta mediante image_gen; el prompt y la guía de color están en `docs/identidad/`. No se ha verificado exclusividad registral de marca.

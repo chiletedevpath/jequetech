@@ -1,4 +1,14 @@
-# Verificación del Avance 2
+# Verificación del proyecto
+
+## APF3 — hito 1: base relacional (20 de octubre de 2026)
+
+Se verificó el esquema con MySQL 8.4.11 real, usando la imagen fijada por digest en `compose.yaml` y contenedores exclusivos de prueba. `scripts/check-database.ps1` terminó con 32 comprobaciones SQL aprobadas, ocho tablas creadas y conservación de un dato confirmado después de reiniciar MySQL. Incluye duplicados, relaciones inválidas, cardinalidad de diagnóstico, números locales de trabajos/eventos, rollback y actualización condicionada por versión.
+
+También se comprobó el arranque de Compose, su estado saludable y el acceso a las ocho tablas con el usuario `jequetech`. Los contenedores y volúmenes temporales se retiraron al terminar.
+
+Estas pruebas acreditan el esquema y el almacenamiento de MySQL. La aplicación web sigue usando memoria: entidades JPA, adaptadores, transacciones y persistencia del flujo web corresponden al hito 2. No se modificó código Java ni interfaz en este hito; las pruebas funcionales del APF2 que siguen son evidencia histórica y no una nueva ejecución.
+
+## APF2 — verificación histórica
 
 Fecha: 28 de septiembre de 2026. Proyecto: JequeTech Solutions S.A.C.
 
@@ -45,4 +55,4 @@ Resultado: `exports/evidencias/resultado-navegador.json`, PASS, sin fallos regis
 
 ## Entrega
 
-`scripts/package.ps1` genera `exports/jequetech-apf2-fuentes.zip` con código, Maven Wrapper, documentación y scripts. Excluye datos temporales, dependencias descargadas de trabajo, compilados y documentos académicos originales. El JAR ejecutable se encuentra en `target/jequetech-0.1.0.jar` después de la compilación.
+`scripts/package.ps1` genera actualmente `exports/jequetech-fuentes.zip` con código, Maven Wrapper, documentación, scripts y esquema MySQL. Excluye `.env`, datos temporales, dependencias descargadas de trabajo, compilados y documentos académicos originales. El ZIP APF2 anterior se conserva como entrega histórica. El JAR ejecutable se encuentra en `target/jequetech-0.1.0.jar` después de la compilación.
