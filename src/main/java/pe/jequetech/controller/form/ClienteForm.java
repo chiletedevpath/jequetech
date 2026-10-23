@@ -1,7 +1,32 @@
 package pe.jequetech.controller.form;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
+
 public class ClienteForm {
+
+  @NotBlank(message = "El nombre o razón social es obligatorio.")
+  @Size(max = 100, message = "El nombre no puede superar los 100 caracteres.")
   private String nombres = "";
+
+  @Size(max = 100, message = "Los apellidos no pueden superar los 100 caracteres.")
+  private String apellidos = "";
+
+  @NotBlank(message = "El documento es obligatorio.")
+  @Size(max = 20, message = "El documento no puede superar los 20 caracteres.")
+  @Pattern(regexp = "^[A-Za-z0-9-]+$", message = "El documento solo puede contener letras, números y guiones.")
+  private String documento = "";
+
+  @NotBlank(message = "El teléfono es obligatorio.")
+  @Pattern(regexp = "^[0-9+()\\-\\s]{7,20}$", message = "Ingresa un teléfono válido.")
+  private String telefono = "";
+
+  @NotBlank(message = "El correo electrónico es obligatorio.")
+  @Email(message = "Ingresa un correo electrónico válido.")
+  @Size(max = 120, message = "El correo no puede superar los 120 caracteres.")
+  private String correo = "";
 
   public String getNombres() {
     return nombres;
@@ -11,8 +36,6 @@ public class ClienteForm {
     nombres = value;
   }
 
-  private String apellidos = "";
-
   public String getApellidos() {
     return apellidos;
   }
@@ -20,8 +43,6 @@ public class ClienteForm {
   public void setApellidos(String value) {
     apellidos = value;
   }
-
-  private String documento = "";
 
   public String getDocumento() {
     return documento;
@@ -31,8 +52,6 @@ public class ClienteForm {
     documento = value;
   }
 
-  private String telefono = "";
-
   public String getTelefono() {
     return telefono;
   }
@@ -40,8 +59,6 @@ public class ClienteForm {
   public void setTelefono(String value) {
     telefono = value;
   }
-
-  private String correo = "";
 
   public String getCorreo() {
     return correo;
