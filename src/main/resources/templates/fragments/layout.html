@@ -178,7 +178,7 @@
           </nav>
           <div class="sidebar-bottom">
             <span class="live-dot"></span> Entorno de demostración
-            <p>Los datos se reinician al cerrar el servidor.</p>
+            <p th:text="${persistente} ? 'Los datos se conservan al reiniciar.' : 'Los datos se reinician al cerrar el servidor.'"></p>
             <div class="small">Chilete · Valle del Jequetepeque</div>
           </div>
         </div>

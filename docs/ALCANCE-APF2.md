@@ -1,5 +1,7 @@
 # Alcance del Avance 2
 
+Este documento conserva el alcance histórico del APF2. La evolución posterior a MySQL/JPA se describe en el [README](../README.md) y en el [informe de verificación](VERIFICACION.md).
+
 Fuentes revisadas: Avance2_Marcos de Desarrollo Web.docx actualizado, rúbrica APF2, rúbrica del proyecto final, sílabo 2026-2 y los cuatro diagramas actualizados suministrados por el autor. Las instrucciones operativas proceden de la solicitud del usuario y su texto adjunto; los documentos académicos se usan como especificación y evidencia del alcance.
 
 ## Trazabilidad funcional

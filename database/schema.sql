@@ -1,5 +1,5 @@
 -- Hito 1 APF3. Ejecutar una sola vez sobre una base vacía MySQL 8.4.
--- No borra ni reemplaza tablas existentes. La aplicación todavía usa memoria.
+-- No borra ni reemplaza tablas existentes. Usado por el perfil mysql de la aplicación.
 -- Los códigos OS-0001 se derivan del id; no se almacenan por duplicado.
 SET NAMES utf8mb4;
 

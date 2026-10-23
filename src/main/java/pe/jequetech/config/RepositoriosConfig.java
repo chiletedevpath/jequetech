@@ -6,6 +6,7 @@ import pe.jequetech.repository.*;
 import pe.jequetech.repository.memory.RepositorioMemoria;
 
 @Configuration
+@Profile("!mysql")
 public class RepositoriosConfig {
   @Bean
   Repositorio<Cliente> clientes() {

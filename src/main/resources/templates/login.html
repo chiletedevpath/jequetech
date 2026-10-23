@@ -82,7 +82,7 @@
               Ingresar al sistema <span aria-hidden="true">→</span>
             </button>
           </form>
-          <details class="demo-access">
+          <details th:if="${demoHabilitada}" class="demo-access">
             <summary>Accesos para la demostración</summary>
             <p>Contraseña común: <code>Demo2026!</code></p>
             <ul>
@@ -93,7 +93,7 @@
             </ul>
           </details>
           <p class="login-note">
-            Versión académica · Los datos se reinician al detener el servidor.
+            <span th:text="${persistente} ? 'Versión académica · Los datos se conservan al reiniciar.' : 'Versión académica · Los datos se reinician al detener el servidor.'"></span>
           </p>
         </section>
       </div>

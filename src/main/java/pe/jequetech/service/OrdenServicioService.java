@@ -12,6 +12,7 @@ import pe.jequetech.model.*;
 import pe.jequetech.repository.OrdenServicioRepository;
 
 @Service
+@org.springframework.transaction.annotation.Transactional
 public class OrdenServicioService {
   private final OrdenServicioRepository ordenes;
   private final CatalogoService catalogos;
@@ -254,7 +255,7 @@ public class OrdenServicioService {
   }
 
   private EventoOrden evento(Usuario actor, String mensaje) {
-    return new EventoOrden(LocalDateTime.now(), mensaje, actor.nombre());
+    return new EventoOrden(LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS), mensaje, actor.nombre());
   }
 
   private List<EventoOrden> historial(OrdenServicio o, Usuario actor, String mensaje) {

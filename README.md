@@ -6,7 +6,7 @@ La aplicación integra **Java, Spring Boot 4.0.8, Spring Web MVC, Thymeleaf y Bo
 
 ## Estado del proyecto
 
-Documentación actualizada el **20 de octubre de 2026**. Aplicación **0.1.0 / APF2**, con el primer hito del APF3 dedicado al esquema MySQL. La web sigue usando repositorios en memoria; todavía no se conecta a esta base.
+Documentación actualizada el **23 de octubre de 2026**. Aplicación **0.1.0**, con los hitos 1 y 2 del APF3: esquema MySQL e integración JPA/Hibernate. El perfil predeterminado `memoria` conserva la demostración APF2; el perfil `mysql` guarda los registros de la web en la base relacional.
 
 | Área | Estado actual |
 | --- | --- |
@@ -15,10 +15,11 @@ Documentación actualizada el **20 de octubre de 2026**. Aplicación **0.1.0 / A
 | Usuarios y técnicos | Gestión por administrador, vinculación de cuenta y activación/desactivación |
 | Acceso | Sesiones y permisos por rol comprobados en el servidor |
 | Interfaz | Logo propio de la propuesta, paleta azul/turquesa y navegación responsive |
-| Almacenamiento | Repositorios en memoria con datos ficticios; sin persistencia entre reinicios |
-| Verificación registrada | 17 pruebas de integración aprobadas y recorrido de navegador PASS |
+| Almacenamiento | Memoria por defecto o MySQL persistente mediante el perfil `mysql` |
+| Verificación registrada | 22 pruebas con MySQL, navegador PASS y datos íntegros tras reinicio (23/10/2026) |
 | Base relacional APF3 | Esquema MySQL de ocho tablas y entorno Docker independiente |
-| Próximas etapas | Conectar JPA y transacciones, Spring Validator y posteriormente Spring Security |
+| Persistencia JPA | Identificadores generados por MySQL, transacciones y bloqueo optimista de órdenes |
+| Próximas etapas | Spring Validator, cierre APF3 y posteriormente Spring Security |
 
 Las imágenes de maquetación del informe son referencias de diseño. La interfaz implementada y sus capturas constituyen la evidencia de esta versión. La entrega académica del Word y la exposición se completan por separado.
 
@@ -61,7 +62,7 @@ Todas las cuentas iniciales usan la contraseña **`Demo2026!`**. Son credenciale
 | `tecnico@jequetech.test` | Técnico: Daniel Torres | Órdenes propias, diagnóstico, trabajos y estados |
 | `ana@jequetech.test` | Técnico: Ana Ruiz | Segundo usuario para comprobar aislamiento de órdenes |
 
-Los cambios se comparten entre las sesiones del mismo servidor y **se pierden al detenerlo**. Al reiniciar se cargan nuevamente cuatro clientes, cinco equipos, dos técnicos, cuatro cuentas y seis órdenes ficticias. No se requiere MySQL para este avance.
+En el perfil `memoria`, los cambios se comparten entre las sesiones del mismo servidor y **se pierden al detenerlo**. Al reiniciar se cargan cuatro clientes, cinco equipos, dos técnicos, cuatro cuentas y seis órdenes ficticias. En el perfil `mysql`, los cambios se conservan y la carga demo es opcional: solo se ejecuta sobre una base sin registros, sin sobrescribir datos existentes. Las cuentas anteriores corresponden a esa carga demo, no a cuentas creadas automáticamente en toda base.
 
 ## Recorrido funcional
 
@@ -90,6 +91,7 @@ src/main/java/pe/jequetech/
                           Diagnostico, TrabajoRealizado y valores auxiliares
   repository/             Contratos de almacenamiento
     memory/               Adaptadores temporales en memoria
+    jpa/                  Entidades, relaciones y adaptadores persistentes
 src/main/resources/
   templates/              Vistas Thymeleaf y fragmentos compartidos
   static/css/             Identidad y adaptación responsive
@@ -105,7 +107,7 @@ El README es el punto de entrada de la documentación. Los documentos de `docs/`
 
 `target/` contiene el ejecutable y los resultados generados por Maven; `exports/` contiene el ZIP y las evidencias del navegador. Ambas carpetas están excluidas del control de versiones. `tmp/` está reservado para trabajo temporal y no es necesario para ejecutar ni compilar el proyecto. La carpeta `.github/modernize/` contiene archivos auxiliares de la herramienta de modernización del IDE; no forma parte de la aplicación ni del paquete académico.
 
-Los scripts mantenidos son `check-browser.cjs` (verificación visual y funcional), `package.ps1` (entrega de fuentes) y `download-bootstrap.cjs` (reposición de los recursos Bootstrap 5.3.8 y su licencia). Este último se ejecuta con Node desde la raíz y requiere Internet; no es necesario durante el uso normal.
+Los scripts mantenidos incluyen `check-browser.cjs` (navegador), `check-database.ps1` (esquema SQL), `check-persistence.ps1` (JPA y reinicio), `start-mysql.ps1` (inicio con configuración local), `package.ps1` (fuentes) y `download-bootstrap.cjs` (reposición de Bootstrap y su licencia). Este último requiere Internet y no es necesario durante el uso normal.
 
 ## Rutas principales
 
@@ -140,13 +142,15 @@ La comprobación opcional en navegador requiere Node.js, Playwright y Microsoft 
 node .\scripts\check-browser.cjs
 ```
 
-El script crea datos ficticios de prueba, recorre los roles y guarda capturas en `exports/evidencias/`. Puede configurarse `PLAYWRIGHT_MODULE` con la ruta de un módulo Playwright ya instalado, `BASE_URL` con otro puerto y `BROWSER_CHANNEL` con el navegador compatible. No se necesita Node para ejecutar la aplicación Java. Reiniciar el servidor al terminar las pruebas para recuperar la demostración inicial.
+El script crea datos ficticios de prueba, recorre los roles y guarda capturas en `exports/evidencias/`. Puede configurarse `PLAYWRIGHT_MODULE` con la ruta de un módulo Playwright ya instalado, `BASE_URL` con otro puerto, `EVIDENCE_DIR` con otro directorio de salida y `BROWSER_CHANNEL` con el navegador compatible. No se necesita Node para ejecutar la aplicación Java. En memoria, reiniciar restaura la demostración; en MySQL, los registros de prueba se conservan. Para comprobar MySQL sin ensuciar una base de trabajo, usar el script aislado descrito más abajo.
 
 Consultar [la guía de evidencias](docs/EVIDENCIAS-APF2.md), [las decisiones de alcance](docs/ALCANCE-APF2.md) y [el resultado de verificación](docs/VERIFICACION.md).
 
 ### Última verificación registrada
 
-Resultados del 28 de septiembre de 2026; corresponden a la ejecución documentada, no a pruebas ejecutadas automáticamente al leer este archivo:
+**Hito 2, 23 de octubre de 2026:** 22 pruebas con MySQL real aprobadas, recorrido de navegador PASS y datos sin diferencias tras reiniciar aplicación y base. Los registros y 23 capturas están en `exports/verificacion-mysql/`. Consultar [Verificación](docs/VERIFICACION.md) para cobertura y límites.
+
+Resultados históricos del APF2, 28 de septiembre de 2026:
 
 - **Maven:** 17 pruebas, 0 fallos, 0 errores y 0 omitidas; compilación `BUILD SUCCESS`.
 - **Navegador:** ocho grupos de comprobaciones con resultado `PASS`, incluidos el ciclo completo de una orden, los permisos por rol y la desactivación de cuentas.
@@ -165,7 +169,7 @@ La configuración está en `src/main/resources/application.properties`: direcci�
 | La primera compilación no descarga dependencias | Comprobar la conexión y la configuración de proxy del entorno; volver a ejecutar Maven Wrapper |
 | El puerto 8080 está ocupado | Usar otro puerto libre y abrir la URL correspondiente |
 | No aparece el JAR | Ejecutar `.\mvnw.cmd clean verify` y comprobar que termina con `BUILD SUCCESS` |
-| Los datos vuelven a su estado inicial | Es el comportamiento del almacenamiento en memoria al reiniciar |
+| Los datos vuelven a su estado inicial | Comprobar el perfil: `memoria` se reinicia; `mysql` conserva los datos |
 | Una cuenta no puede entrar | Comprobar sus credenciales y estado activo; para un técnico, también su vinculación y estado |
 | La prueba de navegador no encuentra Playwright | Configurar `PLAYWRIGHT_MODULE` con la ruta del módulo instalado; esta dependencia solo se usa para la prueba opcional |
 
@@ -183,16 +187,16 @@ La configuración está en `src/main/resources/application.properties`: direcci�
 El APF3 se desarrolla por hitos, cada uno con su verificación y commit local:
 
 1. **Esquema relacional MySQL:** ocho tablas, relaciones, restricciones, índices y prueba de integridad y reinicio. Implementado en este hito.
-2. **Persistencia de la aplicación:** entidades y adaptadores JPA/Hibernate, transacciones, generación de identificadores, bloqueo optimista y semilla que no sobrescriba registros. Pendiente.
+2. **Persistencia de la aplicación:** entidades y adaptadores JPA/Hibernate, transacciones, generación de identificadores, bloqueo optimista y semilla que no sobrescriba registros. Implementado y probado con MySQL real.
 3. **Validación y cierre APF3:** Spring Validator, operaciones restantes según rúbrica y evidencias del recorrido persistente. Pendiente.
 
-Los contratos de repositorio permiten sustituir la memoria sin trasladar las reglas de negocio a los controladores. Hasta completar el segundo hito, registrar datos desde la web no escribe en MySQL.
+Los contratos de repositorio permiten seleccionar el almacenamiento sin trasladar las reglas de negocio a los controladores. Los servicios mantienen una transacción por operación en el perfil MySQL; el adaptador transforma entidades JPA en objetos del dominio antes de salir de la transacción. Open Session in View está desactivado. Hibernate valida el esquema al arrancar y no crea, borra ni actualiza tablas automáticamente.
 
 La fase final incorporará Spring Security, autenticación y autorización formales, pruebas de seguridad y despliegue adecuado. El acceso actual es una demostración de sesión con contraseñas derivadas mediante PBKDF2 y token antifalsificación; no equivale a la implementación final de Spring Security. JWT solo se incorporará si la arquitectura y las indicaciones del curso lo requieren.
 
 El informe Word original se conserva sin modificaciones. Las capturas, la exposición, el Project Charter y el DER deben revisarse y completarse en su entrega académica correspondiente. No se afirma una calificación ni el cumplimiento del proyecto final.
 
-## MySQL — hito 1 del APF3
+## MySQL — hitos 1 y 2 del APF3
 
 Archivos: [esquema](database/schema.sql), [pruebas SQL](database/tests/integridad.sql), [Compose](compose.yaml) y [prueba automatizada](scripts/check-database.ps1).
 
@@ -210,7 +214,7 @@ erDiagram
 
 El técnico puede existir sin cuenta durante el alta. Todo usuario con rol `TECNICO` exige un técnico vinculado; los demás roles no admiten ese vínculo. La relación compuesta equipo–cliente impide registrar una orden para un equipo ajeno o cambiar el propietario de un equipo con órdenes.
 
-El esquema utiliza InnoDB, claves autoincrementales y `utf8mb4_0900_as_ci` (distingue acentos e ignora mayúsculas). El diagnóstico comparte la clave de su orden. Trabajos y eventos tienen identificador global y número único dentro de cada orden. El autor del evento se conserva como texto histórico. No hay borrados en cascada. La columna `version` prepara la detección de escrituras obsoletas; el siguiente hito implementará `@Version` y las transacciones en JPA.
+El esquema utiliza InnoDB, claves autoincrementales y `utf8mb4_0900_as_ci` (distingue acentos e ignora mayúsculas). El diagnóstico comparte la clave de su orden. Trabajos y eventos tienen identificador global y número único dentro de cada orden. El autor del evento se conserva como texto histórico. No hay borrados SQL en cascada. JPA usa `@Version` para las órdenes y propaga los cambios de diagnóstico, trabajos e historial en la misma transacción. El historial se mapea como colección de valores del agregado: añadir un evento incrementa la versión incluso cuando no cambia el estado. Su identificador SQL interno no forma parte del dominio.
 
 Las comprobaciones entre registros —cuenta y técnico activos, secuencia de estados, diagnóstico y trabajo previos a finalizar— siguen siendo responsabilidad del servicio. Las fechas futuras se validan allí. Las restricciones SQL no sustituyen esas reglas ni aplican por sí solas un flujo de atención.
 
@@ -234,6 +238,20 @@ El último comando solicita la contraseña de `MYSQL_PASSWORD`. Desde un cliente
 
 La inicialización ejecuta `database/schema.sql` únicamente cuando el volumen está vacío. No crea cuentas web ni carga datos demo. `docker compose stop` detiene la base; `docker compose start --wait` la inicia conservando el volumen. `docker compose down` retira el contenedor y la red, conservando los datos. Añadir `-v` eliminaría el volumen y sus datos: no es necesario para el uso normal.
 
+### Ejecutar la web con persistencia
+
+Con MySQL saludable, para una primera demostración académica establecer `JEQUETECH_DEMO=true` en `.env` y ejecutar desde la raíz:
+
+```powershell
+.\scripts\start-mysql.ps1
+```
+
+Abrir `http://127.0.0.1:8080/login`. El script lee únicamente las variables de conexión y demostración permitidas de `.env`, en formato `CLAVE=valor` literal sin comillas; no evalúa código ni muestra contraseñas. Las variables ya definidas en el proceso tienen prioridad. La carga inicial es transaccional y solo comienza si usuarios, clientes, equipos, técnicos y órdenes están vacíos. Si ya hay registros, no modifica datos ni contraseñas. Se puede desactivar `JEQUETECH_DEMO` tras la inicialización; las cuentas guardadas siguen existiendo. Una base vacía con la carga desactivada no tendrá cuentas para iniciar sesión.
+
+También se puede ejecutar el JAR con `--spring.profiles.active=mysql`, definiendo `MYSQL_PASSWORD` en el entorno. Son opcionales `MYSQL_USER` (por defecto `jequetech`) y `MYSQL_URL`. Spring Boot no carga `.env` por sí solo: el script anterior realiza esa lectura. Activar únicamente `memoria` o `mysql`, no ambos.
+
+La conexión local predeterminada usa `127.0.0.1:3307`, sin TLS y con recuperación de clave pública habilitada para el contenedor local. Para un servidor remoto se debe proporcionar otra `MYSQL_URL` con TLS y configuración apropiada; este hito no constituye un despliegue de producción. Una base del hito 1 no necesita cambios de estructura para usar esta integración.
+
 Modificar el SQL no actualiza automáticamente una base existente. Los cambios posteriores necesitarán migraciones; este script inicial falla ante tablas existentes para evitar aparentar una actualización que no realizó. No contiene `DROP TABLE`.
 
 ### Comprobar el esquema sin afectar bases existentes
@@ -242,7 +260,17 @@ Modificar el SQL no actualiza automáticamente una base existente. Los cambios p
 .\scripts\check-database.ps1
 ```
 
-La prueba usa un contenedor de nombre único, contraseña aleatoria, sin puertos publicados y sin utilizar `.env`. Crea el esquema, verifica restricciones y rollback, y comprueba que un dato confirmado sobrevive al reinicio de MySQL. Al terminar elimina únicamente su contenedor y volumen efímeros. No prueba aún la persistencia de la web.
+La prueba usa un contenedor de nombre único, contraseña aleatoria, sin puertos publicados y sin utilizar `.env`. Crea el esquema, verifica restricciones y rollback, y comprueba que un dato confirmado sobrevive al reinicio de MySQL. Al terminar elimina únicamente su contenedor y volumen efímeros.
+
+Para comprobar la aplicación completa con MySQL:
+
+```powershell
+.\scripts\check-persistence.ps1
+# Opcional: requiere Node.js, Playwright y Edge.
+.\scripts\check-persistence.ps1 -Browser
+```
+
+Este segundo script crea una base aislada en un puerto local aleatorio, ejecuta las 17 pruebas funcionales con JPA y cinco pruebas específicas de persistencia, arranca el JAR, reinicia la aplicación y MySQL y compara todos los registros antes y después. Con `-Browser` también ejecuta el recorrido de navegador antes de comparar los datos. Los resultados quedan en `exports/verificacion-mysql/`; la prueba elimina su contenedor y volumen al finalizar. Las cinco pruebas exclusivas MySQL se omiten intencionalmente al ejecutar Maven en modo memoria.
 
 ## Preparar entrega
 

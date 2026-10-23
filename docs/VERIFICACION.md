@@ -1,12 +1,27 @@
 # Verificación del proyecto
 
+## APF3 — hito 2: JPA y persistencia web (23 de octubre de 2026)
+
+Se incorporó el perfil `mysql` con JPA/Hibernate, relaciones, identificadores autogenerados, transacciones y bloqueo optimista de órdenes. El perfil predeterminado `memoria` conserva la demostración original. Hibernate valida las tablas y no modifica el esquema al arrancar.
+
+`scripts/check-persistence.ps1 -Browser` completó la verificación sobre MySQL 8.4.11 aislado:
+
+- **22 pruebas aprobadas**, sin fallos ni errores: 17 pruebas funcionales usando JPA y cinco pruebas de rollback, semilla no destructiva, actualización del diagnóstico, identificadores y transacciones concurrentes sobre una misma orden.
+- **Navegador PASS**, ocho grupos de comprobaciones en Edge y 23 capturas a 390, 768, 1366 y 1920 píxeles. Se revisaron visualmente el acceso móvil y el dashboard de escritorio.
+- **Reinicio real de aplicación y MySQL:** el nuevo proceso Java inició correctamente y respondió desde su propio puerto. El volcado ordenado de todos los registros mantuvo el mismo hash antes y después, incluidos los registros del recorrido web.
+- La carga demo es explícita y transaccional. Solo se aplica sobre una base sin registros; no repone datos ni cambia contraseñas al reiniciar una base existente.
+
+Evidencia: `exports/verificacion-mysql/maven.log`, `resultado.json`, `arranque.log`, `reinicio.log` y `navegador/resultado-navegador.json`. El script comprueba el PID dueño del puerto HTTP y consulta de nuevo el puerto aleatorio de MySQL después de reiniciarlo. Retira sus procesos, contenedor y volumen al finalizar.
+
+El modo memoria se comprueba por separado con `mvnw.cmd -B verify`; las cinco pruebas exclusivas de MySQL se omiten intencionalmente en ese modo. No se ha incorporado todavía Spring Validator ni Spring Security. No se migran automáticamente datos desde memoria ni se actualizan las entregas históricas del APF2.
+
 ## APF3 — hito 1: base relacional (20 de octubre de 2026)
 
 Se verificó el esquema con MySQL 8.4.11 real, usando la imagen fijada por digest en `compose.yaml` y contenedores exclusivos de prueba. `scripts/check-database.ps1` terminó con 32 comprobaciones SQL aprobadas, ocho tablas creadas y conservación de un dato confirmado después de reiniciar MySQL. Incluye duplicados, relaciones inválidas, cardinalidad de diagnóstico, números locales de trabajos/eventos, rollback y actualización condicionada por versión.
 
 También se comprobó el arranque de Compose, su estado saludable y el acceso a las ocho tablas con el usuario `jequetech`. Los contenedores y volúmenes temporales se retiraron al terminar.
 
-Estas pruebas acreditan el esquema y el almacenamiento de MySQL. La aplicación web sigue usando memoria: entidades JPA, adaptadores, transacciones y persistencia del flujo web corresponden al hito 2. No se modificó código Java ni interfaz en este hito; las pruebas funcionales del APF2 que siguen son evidencia histórica y no una nueva ejecución.
+Estas pruebas del hito 1 acreditaron únicamente el esquema y el almacenamiento de MySQL. En ese momento la web seguía usando memoria; la integración posterior está documentada en el hito 2 anterior. No se modificó código Java ni interfaz en el hito 1.
 
 ## APF2 — verificación histórica
 

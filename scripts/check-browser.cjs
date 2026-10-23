@@ -3,7 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || "playwright");
 const base = process.env.BASE_URL || "http://127.0.0.1:8080";
-const out = path.resolve("exports/evidencias");
+const out = path.resolve(process.env.EVIDENCE_DIR || "exports/evidencias");
 fs.mkdirSync(out, { recursive: true });
 const stamp = Date.now().toString();
 const summary = { base, screenshots: [], checks: [], failures: [] };

@@ -9,6 +9,7 @@ import pe.jequetech.model.*;
 import pe.jequetech.repository.Repositorio;
 
 @Service
+@org.springframework.transaction.annotation.Transactional
 public class CatalogoService {
   private final Repositorio<Cliente> clientes;
   private final Repositorio<Equipo> equipos;
