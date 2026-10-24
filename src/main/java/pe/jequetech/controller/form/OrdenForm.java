@@ -1,6 +1,18 @@
 package pe.jequetech.controller.form;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
+import java.time.LocalDate;
+import org.springframework.format.annotation.DateTimeFormat;
+import pe.jequetech.model.Prioridad;
+
 public class OrdenForm {
+
+  @NotNull(message = "Selecciona un cliente.")
+  @Positive(message = "Selecciona un cliente válido.")
   private Long clienteId;
 
   public Long getClienteId() {
@@ -11,6 +23,8 @@ public class OrdenForm {
     clienteId = value;
   }
 
+  @NotNull(message = "Selecciona un equipo.")
+  @Positive(message = "Selecciona un equipo válido.")
   private Long equipoId;
 
   public Long getEquipoId() {
@@ -31,18 +45,21 @@ public class OrdenForm {
     tecnicoId = value;
   }
 
-  @org.springframework.format.annotation.DateTimeFormat(
-      iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE)
-  private java.time.LocalDate fechaRecepcion = java.time.LocalDate.now();
+  @NotNull(message = "La fecha de recepción es obligatoria.")
+  @PastOrPresent(message = "La fecha de recepción no puede ser futura.")
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+  private LocalDate fechaRecepcion = LocalDate.now();
 
-  public java.time.LocalDate getFechaRecepcion() {
+  public LocalDate getFechaRecepcion() {
     return fechaRecepcion;
   }
 
-  public void setFechaRecepcion(java.time.LocalDate value) {
+  public void setFechaRecepcion(LocalDate value) {
     fechaRecepcion = value;
   }
 
+  @NotBlank(message = "La falla reportada es obligatoria.")
+  @Size(max = 1500, message = "La falla reportada no puede superar los 1500 caracteres.")
   private String fallaReportada = "";
 
   public String getFallaReportada() {
@@ -53,16 +70,18 @@ public class OrdenForm {
     fallaReportada = value;
   }
 
-  private pe.jequetech.model.Prioridad prioridad = pe.jequetech.model.Prioridad.MEDIA;
+  @NotNull(message = "Selecciona una prioridad.")
+  private Prioridad prioridad = Prioridad.MEDIA;
 
-  public pe.jequetech.model.Prioridad getPrioridad() {
+  public Prioridad getPrioridad() {
     return prioridad;
   }
 
-  public void setPrioridad(pe.jequetech.model.Prioridad value) {
+  public void setPrioridad(Prioridad value) {
     prioridad = value;
   }
 
+  @Size(max = 1500, message = "Las observaciones no pueden superar los 1500 caracteres.")
   private String observaciones = "";
 
   public String getObservaciones() {

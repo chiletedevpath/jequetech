@@ -7,126 +7,190 @@
   <body>
     <main>
       <a class="back-link" th:href="@{/ordenes}">← Volver a órdenes</a>
+
       <div class="page-heading">
         <div>
           <div class="eyebrow">RECEPCIÓN DE EQUIPO</div>
-          <h1
-            th:text="${id == null} ? 'Nueva orden de servicio' : 'Editar orden de servicio'"
-          ></h1>
+          <h1 th:text="${id == null} ? 'Nueva orden de servicio' : 'Editar orden de servicio'"></h1>
           <p>Registra la información necesaria para iniciar la atención.</p>
         </div>
       </div>
+
       <form
         class="card form-card"
         th:action="${id == null} ? @{/ordenes} : @{/ordenes/{id}/editar(id=${id})}"
         method="post"
         th:object="${form}"
       >
-        <input type="hidden" name="_csrf" th:value="${session.csrf}" /><input
-          type="hidden"
-          th:field="*{version}"
-        />
-        <h2>01 <span>Cliente y equipo</span></h2>
-        <p class="text-secondary">
-          Los campos marcados con * son obligatorios.
-        </p>
+        <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+        <input type="hidden" th:field="*{version}" />
+
+        <h2>
+          01
+          <span>Cliente y equipo</span>
+        </h2>
+
+        <p class="text-secondary">Los campos marcados con * son obligatorios.</p>
+
         <div class="row g-3">
           <div class="col-md-6">
-            <label class="form-label" for="clienteId">Cliente *</label
-            ><select
+            <label class="form-label" for="clienteId">Cliente *</label>
+
+            <select
               class="form-select"
+              th:classappend="${#fields.hasErrors('clienteId')} ? 'is-invalid'"
               th:field="*{clienteId}"
               required
               data-client-select
             >
               <option value="">Selecciona un cliente</option>
+
               <option
                 th:each="c : ${clientes}"
                 th:value="${c.id}"
                 th:text="${c.nombreCompleto()}"
-              ></option></select
-            ><a class="form-text d-block" th:href="@{/clientes/nuevo}"
-              >Registrar un cliente</a
-            >
+              ></option>
+            </select>
+
+            <div
+              class="invalid-feedback"
+              th:if="${#fields.hasErrors('clienteId')}"
+              th:errors="*{clienteId}"
+            ></div>
+
+            <a class="form-text d-block" th:href="@{/clientes/nuevo}">Registrar un cliente</a>
           </div>
+
           <div class="col-md-6">
-            <label class="form-label" for="equipoId">Equipo *</label
-            ><select
+            <label class="form-label" for="equipoId">Equipo *</label>
+
+            <select
               class="form-select"
+              th:classappend="${#fields.hasErrors('equipoId')} ? 'is-invalid'"
               th:field="*{equipoId}"
               required
               data-equipment-select
             >
               <option value="">Selecciona un equipo del cliente</option>
+
               <option
                 th:each="e : ${equipos}"
                 th:value="${e.id}"
                 th:data-client="${e.clienteId}"
                 th:text="${e.descripcion() + ' · ' + e.numeroSerie}"
-              ></option></select
-            ><a class="form-text d-block" th:href="@{/equipos/nuevo}"
-              >Registrar un equipo</a
-            >
+              ></option>
+            </select>
+
+            <div
+              class="invalid-feedback"
+              th:if="${#fields.hasErrors('equipoId')}"
+              th:errors="*{equipoId}"
+            ></div>
+
+            <a class="form-text d-block" th:href="@{/equipos/nuevo}">Registrar un equipo</a>
           </div>
         </div>
+
         <hr />
-        <h2>02 <span>Información de recepción</span></h2>
+
+        <h2>
+          02
+          <span>Información de recepción</span>
+        </h2>
+
         <div class="row g-3">
           <div class="col-12">
-            <label class="form-label" for="fallaReportada"
-              >Falla reportada *</label
-            ><textarea
+            <label class="form-label" for="fallaReportada">Falla reportada *</label>
+
+            <textarea
               class="form-control"
+              th:classappend="${#fields.hasErrors('fallaReportada')} ? 'is-invalid'"
               th:field="*{fallaReportada}"
               rows="3"
               required
               maxlength="1500"
               placeholder="Describe el problema indicado por el cliente"
             ></textarea>
+
+            <div
+              class="invalid-feedback"
+              th:if="${#fields.hasErrors('fallaReportada')}"
+              th:errors="*{fallaReportada}"
+            ></div>
           </div>
+
           <div class="col-md-4">
-            <label class="form-label" for="fechaRecepcion"
-              >Fecha de recepción *</label
-            ><input
+            <label class="form-label" for="fechaRecepcion">Fecha de recepción *</label>
+
+            <input
               class="form-control"
+              th:classappend="${#fields.hasErrors('fechaRecepcion')} ? 'is-invalid'"
               type="date"
               th:field="*{fechaRecepcion}"
               th:max="${#temporals.format(#temporals.createToday(),'yyyy-MM-dd')}"
               required
             />
+
+            <div
+              class="invalid-feedback"
+              th:if="${#fields.hasErrors('fechaRecepcion')}"
+              th:errors="*{fechaRecepcion}"
+            ></div>
           </div>
+
           <div class="col-md-4">
-            <label class="form-label" for="prioridad">Prioridad *</label
-            ><select class="form-select" th:field="*{prioridad}" required>
-              <option
-                th:each="p : ${prioridades}"
-                th:value="${p}"
-                th:text="${p.etiqueta}"
-              ></option>
+            <label class="form-label" for="prioridad">Prioridad *</label>
+
+            <select
+              class="form-select"
+              th:classappend="${#fields.hasErrors('prioridad')} ? 'is-invalid'"
+              th:field="*{prioridad}"
+              required
+            >
+              <option th:each="p : ${prioridades}" th:value="${p}" th:text="${p.etiqueta}"></option>
             </select>
+
+            <div
+              class="invalid-feedback"
+              th:if="${#fields.hasErrors('prioridad')}"
+              th:errors="*{prioridad}"
+            ></div>
           </div>
+
           <div class="col-md-4">
-            <span class="form-label d-block">Asignación</span
-            ><input type="hidden" th:field="*{tecnicoId}" />
+            <span class="form-label d-block">Asignación</span>
+
+            <input type="hidden" th:field="*{tecnicoId}" />
+
             <p class="form-text">
-              La orden se registra primero. El responsable se asigna desde el
-              detalle.
+              La orden se registra primero. El responsable se asigna desde el detalle.
             </p>
           </div>
+
           <div class="col-12">
-            <label class="form-label" for="observaciones">Observaciones</label
-            ><textarea
+            <label class="form-label" for="observaciones">Observaciones</label>
+
+            <textarea
               class="form-control"
+              th:classappend="${#fields.hasErrors('observaciones')} ? 'is-invalid'"
               th:field="*{observaciones}"
               rows="3"
               maxlength="1500"
               placeholder="Accesorios recibidos, condición del equipo u otras observaciones"
             ></textarea>
+
+            <div
+              class="invalid-feedback"
+              th:if="${#fields.hasErrors('observaciones')}"
+              th:errors="*{observaciones}"
+            ></div>
           </div>
         </div>
+
         <div class="form-actions">
-          <a class="btn btn-outline-secondary" th:href="@{/ordenes}">Cancelar</a
-          ><button
+          <a class="btn btn-outline-secondary" th:href="@{/ordenes}">Cancelar</a>
+
+          <button
             class="btn btn-primary"
             th:text="${id == null} ? 'Registrar orden' : 'Guardar cambios'"
           ></button>
