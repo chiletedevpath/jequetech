@@ -22,7 +22,10 @@ public class RepositorioJpa<T extends Identificable, E extends FilaJpa<T>>
     this.fabrica = fabrica;
   }
 
-  /** Cero identifica una inserción; MySQL asigna el id al guardar, nunca MAX(id)+1. */
+  /**
+   * Cero identifica una inserción; MySQL asigna el id al guardar, nunca
+   * MAX(id)+1.
+   */
   public long siguienteId() {
     return 0;
   }
@@ -44,10 +47,20 @@ public class RepositorioJpa<T extends Identificable, E extends FilaJpa<T>>
 
   public T guardar(T valor) {
     E entidad = valor.id() == 0 ? fabrica.get() : em.find(tipo, valor.id());
-    if (entidad == null) throw Reglas.noExiste();
+    if (entidad == null)
+      throw Reglas.noExiste();
     entidad.actualizar(valor, em);
-    if (valor.id() == 0) em.persist(entidad);
+    if (valor.id() == 0)
+      em.persist(entidad);
     em.flush();
     return entidad.dominio();
+  }
+
+  public void eliminar(long id) {
+    E entidad = em.find(tipo, id);
+    if (entidad == null)
+      throw Reglas.noExiste();
+    em.remove(entidad);
+    em.flush();
   }
 }

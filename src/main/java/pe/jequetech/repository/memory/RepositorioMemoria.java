@@ -26,4 +26,8 @@ public class RepositorioMemoria<T extends Identificable> implements Repositorio<
     secuencia = Math.max(secuencia, entidad.id());
     return entidad;
   }
+
+  public synchronized void eliminar(long id) {
+    datos.remove(id);
+  }
 }

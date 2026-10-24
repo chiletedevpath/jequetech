@@ -46,8 +46,7 @@ public class CatalogoService {
     return tecnico(id).activo()
         && usuarios.todos().stream()
             .anyMatch(
-                u ->
-                    u.activo() && u.rol() == Rol.TECNICO && Long.valueOf(id).equals(u.tecnicoId()));
+                u -> u.activo() && u.rol() == Rol.TECNICO && Long.valueOf(id).equals(u.tecnicoId()));
   }
 
   public List<Tecnico> disponibles() {
@@ -68,7 +67,8 @@ public class CatalogoService {
 
   public synchronized Cliente guardarCliente(Usuario actor, Long id, ClienteForm f) {
     rol(actor, Rol.ADMINISTRATIVO);
-    if (id != null) cliente(id);
+    if (id != null)
+      cliente(id);
     String doc = texto(f.getDocumento(), "Documento", 20);
     exigir(
         clientes().stream()
@@ -83,6 +83,18 @@ public class CatalogoService {
             doc,
             telefono(f.getTelefono()),
             correo(f.getCorreo())));
+  }
+
+  public synchronized void eliminarCliente(Usuario actor, long id) {
+    rol(actor, Rol.ADMINISTRATIVO);
+
+    cliente(id);
+
+    exigir(
+        equipos().stream().noneMatch(e -> e.clienteId() == id),
+        "No se puede eliminar un cliente con equipos registrados.");
+
+    clientes.eliminar(id);
   }
 
   public synchronized Equipo guardarEquipo(Usuario actor, Long id, EquipoForm f) {
@@ -114,7 +126,8 @@ public class CatalogoService {
 
   public synchronized Tecnico guardarTecnico(Usuario actor, Long id, TecnicoForm f) {
     rol(actor, Rol.ADMINISTRADOR);
-    if (id != null) tecnico(id);
+    if (id != null)
+      tecnico(id);
     String nombre = texto(f.getNombres(), "Nombre del técnico", 100);
     exigir(
         tecnicos().stream()

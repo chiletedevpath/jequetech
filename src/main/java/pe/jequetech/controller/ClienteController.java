@@ -74,6 +74,21 @@ public class ClienteController {
     return guardar(actor, id, f, binding, model, flash);
   }
 
+  @PostMapping("/{id}/eliminar")
+  public String eliminar(
+      @RequestAttribute Usuario actor,
+      @PathVariable long id,
+      RedirectAttributes flash) {
+    try {
+      servicio.eliminarCliente(actor, id);
+      flash.addFlashAttribute("exito", "Cliente eliminado correctamente.");
+    } catch (ReglaNegocioException e) {
+      flash.addFlashAttribute("error", e.getMessage());
+    }
+
+    return "redirect:/clientes";
+  }
+
   private String guardar(
       Usuario actor,
       Long id,

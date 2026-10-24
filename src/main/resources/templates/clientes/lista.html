@@ -12,16 +12,15 @@
           <h1>Clientes</h1>
           <p>Personas y empresas que confían sus equipos a JequeTech.</p>
         </div>
-        <a class="btn btn-primary" th:href="@{/clientes/nuevo}"
-          >+ Nuevo cliente</a
-        >
+
+        <a class="btn btn-primary" th:href="@{/clientes/nuevo}">+ Nuevo cliente</a>
       </div>
+
       <section class="card">
         <div class="table-responsive">
           <table class="table align-middle mb-0">
-            <caption class="visually-hidden">
-              Clientes
-            </caption>
+            <caption class="visually-hidden">Clientes</caption>
+
             <thead>
               <tr>
                 <th scope="col">Cliente</th>
@@ -31,24 +30,35 @@
                 <th scope="col">Acciones</th>
               </tr>
             </thead>
+
             <tbody>
               <tr th:each="r : ${registros}">
                 <td th:text="${r.nombreCompleto()}"></td>
                 <td th:text="${r.documento}"></td>
                 <td th:text="${r.telefono}"></td>
                 <td th:text="${r.correo}"></td>
+
                 <td>
                   <div class="d-flex gap-2">
-                    <a
-                      class="btn btn-sm btn-light"
-                      th:href="@{/clientes/{id}/editar(id=${r.id})}"
-                      >Editar</a
+                    <a class="btn btn-sm btn-light" th:href="@{/clientes/{id}/editar(id=${r.id})}">
+                      Editar
+                    </a>
+
+                    <form
+                      th:action="@{/clientes/{id}/eliminar(id=${r.id})}"
+                      method="post"
+                      onsubmit="return confirm('¿Deseas eliminar este cliente?');"
                     >
+                      <input type="hidden" name="_csrf" th:value="${session.csrf}" />
+
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
+                    </form>
                   </div>
                 </td>
               </tr>
+
               <tr th:if="${#lists.isEmpty(registros)}">
-                <td colspan="7" class="empty-state">Aún no hay registros.</td>
+                <td colspan="5" class="empty-state">Aún no hay registros.</td>
               </tr>
             </tbody>
           </table>
