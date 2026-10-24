@@ -28,6 +28,6 @@ public class RepositorioMemoria<T extends Identificable> implements Repositorio<
   }
 
   public synchronized void eliminar(long id) {
-    datos.remove(id);
+    if (datos.remove(id) == null) throw pe.jequetech.service.Reglas.noExiste();
   }
 }

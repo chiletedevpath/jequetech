@@ -1,290 +1,549 @@
 # JequeTech Solutions S.A.C.
 
-Sistema web para la gestión y seguimiento de órdenes de servicio técnico. Implementación académica del Avance de Proyecto Final 2 del curso **Marcos de Desarrollo Web**, basada en el Avance 2 y los diagramas actualizados entregados el 28 de septiembre de 2026.
+Sistema web para la gestión y seguimiento de órdenes de servicio técnico, desarrollado para el curso **Marcos de Desarrollo Web**.
 
-La aplicación integra **Java, Spring Boot 4.0.8, Spring Web MVC, Thymeleaf y Bootstrap 5.3.8**. Las páginas se generan en el servidor y los formularios procesan datos mediante controladores, servicios y repositorios. Bootstrap y el logo se sirven localmente: la interfaz no depende de un CDN.
+El proyecto permite registrar clientes y equipos, crear órdenes de servicio, asignar técnicos, registrar diagnósticos y trabajos realizados, controlar los estados de atención y consultar el historial de cada equipo.
 
-## Estado del proyecto
+Actualmente el desarrollo se encuentra en el cierre técnico del **APF3**.
 
-Documentación actualizada el **23 de octubre de 2026**. Aplicación **0.1.0**, con los hitos 1 y 2 del APF3: esquema MySQL e integración JPA/Hibernate. El perfil predeterminado `memoria` conserva la demostración APF2; el perfil `mysql` guarda los registros de la web en la base relacional.
+---
 
-| Área | Estado actual |
-| --- | --- |
-| Clientes y equipos | Registro, consulta y edición; historial por equipo |
-| Órdenes de servicio | Registro, asignación, diagnóstico, trabajos, seguimiento y entrega |
-| Usuarios y técnicos | Gestión por administrador, vinculación de cuenta y activación/desactivación |
-| Acceso | Sesiones y permisos por rol comprobados en el servidor |
-| Interfaz | Logo propio de la propuesta, paleta azul/turquesa y navegación responsive |
-| Almacenamiento | Memoria por defecto o MySQL persistente mediante el perfil `mysql` |
-| Verificación registrada | 22 pruebas con MySQL, navegador PASS y datos íntegros tras reinicio (23/10/2026) |
-| Base relacional APF3 | Esquema MySQL de ocho tablas y entorno Docker independiente |
-| Persistencia JPA | Identificadores generados por MySQL, transacciones y bloqueo optimista de órdenes |
-| Próximas etapas | Spring Validator, cierre APF3 y posteriormente Spring Security |
+## Estado actual del proyecto
 
-Las imágenes de maquetación del informe son referencias de diseño. La interfaz implementada y sus capturas constituyen la evidencia de esta versión. La entrega académica del Word y la exposición se completan por separado.
+Hasta el momento se ha completado la integración entre:
 
-## Ejecutar en Windows
+- Spring Boot
+- Spring MVC
+- Thymeleaf
+- Jakarta Validation
+- JPA / Hibernate
+- MySQL
+- Bootstrap
+- Docker
 
-Requisitos: JDK 17 o posterior compatible con Spring Boot 4.0; probado con Oracle JDK 25.0.1. Maven Wrapper incluye la configuración de Maven 3.9.12, por lo que no es necesario instalar Maven por separado. La primera compilación requiere Internet para descargar Maven y las dependencias.
+La aplicación puede ejecutarse con dos perfiles:
 
-Desde PowerShell, dentro de la carpeta del proyecto:
+- `memoria`: utilizado principalmente para pruebas rápidas.
+- `mysql`: utilizado para trabajar con persistencia real.
 
-```powershell
-java -version
-.\mvnw.cmd spring-boot:run
-```
+Para el APF3, la persistencia principal utilizada es **MySQL mediante JPA/Hibernate**.
 
-Abrir [http://127.0.0.1:8080/login](http://127.0.0.1:8080/login). Para detener el servidor, usar `Ctrl+C` en esa terminal.
+---
 
-Para verificar y generar un ejecutable:
+## Funcionalidades implementadas
 
-```powershell
-.\mvnw.cmd clean verify
-java -jar .\target\jequetech-0.1.0.jar
-```
+### Clientes
 
-Si el puerto 8080 está ocupado, ejecutar el JAR con un puerto libre:
+Se encuentra implementado el CRUD completo:
 
-```powershell
-java -jar .\target\jequetech-0.1.0.jar --server.port=8081
-```
+- Registrar cliente.
+- Listar clientes.
+- Editar cliente.
+- Eliminar cliente.
 
-En ese caso, abrir `http://127.0.0.1:8081/login`. El servidor escucha únicamente en la computadora local. En macOS/Linux se utiliza `sh mvnw` en lugar de `.\mvnw.cmd`.
+La eliminación está controlada por una regla de negocio:
 
-## Accesos de demostración
+> Un cliente no puede eliminarse si tiene equipos registrados.
 
-Todas las cuentas iniciales usan la contraseña **`Demo2026!`**. Son credenciales públicas para datos ficticios, no cuentas empresariales reales.
+Esto permite evitar problemas de integridad con los equipos y órdenes asociadas.
 
-| Correo | Rol | Funciones |
-| --- | --- | --- |
-| `recepcion@jequetech.test` | Personal administrativo | Clientes, equipos, registro y edición de recepción, asignación, seguimiento e historial |
-| `admin@jequetech.test` | Administrador | Usuarios, técnicos y consulta de órdenes |
-| `tecnico@jequetech.test` | Técnico: Daniel Torres | Órdenes propias, diagnóstico, trabajos y estados |
-| `ana@jequetech.test` | Técnico: Ana Ruiz | Segundo usuario para comprobar aislamiento de órdenes |
+---
 
-En el perfil `memoria`, los cambios se comparten entre las sesiones del mismo servidor y **se pierden al detenerlo**. Al reiniciar se cargan cuatro clientes, cinco equipos, dos técnicos, cuatro cuentas y seis órdenes ficticias. En el perfil `mysql`, los cambios se conservan y la carga demo es opcional: solo se ejecuta sobre una base sin registros, sin sobrescribir datos existentes. Las cuentas anteriores corresponden a esa carga demo, no a cuentas creadas automáticamente en toda base.
+### Equipos
 
-## Recorrido funcional
+Actualmente permite:
 
-1. Ingresar como recepción. Registrar o seleccionar un cliente y un equipo de su propiedad.
-2. Registrar una orden: nace en **Registrada**, sin técnico. El detalle confirma la operación.
-3. Asignar un técnico activo con cuenta habilitada: cambia a **Asignada**.
-4. Ingresar con el técnico asignado y guardar el diagnóstico: cambia a **En diagnóstico**.
-5. Registrar el primer trabajo: cambia a **En atención**. Se pueden añadir varios trabajos.
-6. Confirmar **Finalizada** mediante el modal; luego confirmar **Entregada**. El historial conserva las operaciones y su autor.
-7. Desde recepción, abrir **Equipos → Historial** para consultar únicamente las órdenes de ese equipo.
+- Registrar equipos.
+- Consultar equipos.
+- Editar equipos.
+- Asociar cada equipo con su cliente.
+- Consultar el historial de órdenes de un equipo.
 
-Los roles se comprueban en el servidor. Un técnico no puede consultar ni modificar órdenes de otro técnico. El administrador no sustituye las funciones de recepción. Una cuenta desactivada pierde acceso en la siguiente solicitud.
+---
 
-Se comprueban campos obligatorios, longitudes, correo/teléfono, documentos y series duplicados, pertenencia del equipo al cliente, fecha no futura, técnico disponible, secuencia de estados y versión de la orden. La recepción y la asignación se editan antes de iniciar el diagnóstico. No hay eliminación de registros en APF2.
+### Órdenes de servicio
 
-## Estructura
+El sistema permite:
+
+- Registrar una orden.
+- Seleccionar cliente y equipo.
+- Registrar la falla reportada.
+- Establecer prioridad.
+- Asignar técnico.
+- Registrar diagnóstico.
+- Registrar trabajos realizados.
+- Actualizar el estado de atención.
+- Consultar el seguimiento de la orden.
+
+El flujo utilizado es:
 
 ```text
-src/main/java/pe/jequetech/
-  JequetechApplication.java
-  config/                 Servidor web, sesión, repositorios y semilla ficticia
-  controller/             Rutas HTTP y preparación de las vistas
-    form/                 Objetos de los formularios
-  service/                Reglas de negocio y coordinación
-  model/                  Usuario, Cliente, Equipo, Tecnico, OrdenServicio,
-                          Diagnostico, TrabajoRealizado y valores auxiliares
-  repository/             Contratos de almacenamiento
-    memory/               Adaptadores temporales en memoria
-    jpa/                  Entidades, relaciones y adaptadores persistentes
-src/main/resources/
-  templates/              Vistas Thymeleaf y fragmentos compartidos
-  static/css/             Identidad y adaptación responsive
-  static/js/              Filtrado de equipos y formulario de usuarios
-  static/img/             Logo y favicon
-  static/vendor/          Bootstrap y licencia MIT
-src/test/java/             Pruebas de integración y reglas de negocio
-scripts/                  Comprobación de navegador y empaquetado
-docs/                     Alcance, evidencias y continuidad académica
+Registrada
+   ↓
+Asignada
+   ↓
+En diagnóstico
+   ↓
+En atención
+   ↓
+Finalizada
+   ↓
+Entregada
 ```
 
-El README es el punto de entrada de la documentación. Los documentos de `docs/` desarrollan temas específicos sin añadir otros README. El logo principal se conserva en `src/main/resources/static/img/`; su guía y prompt están en `docs/identidad/`.
+---
 
-`target/` contiene el ejecutable y los resultados generados por Maven; `exports/` contiene el ZIP y las evidencias del navegador. Ambas carpetas están excluidas del control de versiones. `tmp/` está reservado para trabajo temporal y no es necesario para ejecutar ni compilar el proyecto. La carpeta `.github/modernize/` contiene archivos auxiliares de la herramienta de modernización del IDE; no forma parte de la aplicación ni del paquete académico.
+### Técnicos y usuarios
 
-Los scripts mantenidos incluyen `check-browser.cjs` (navegador), `check-database.ps1` (esquema SQL), `check-persistence.ps1` (JPA y reinicio), `start-mysql.ps1` (inicio con configuración local), `package.ps1` (fuentes) y `download-bootstrap.cjs` (reposición de Bootstrap y su licencia). Este último requiere Internet y no es necesario durante el uso normal.
+Se encuentra implementado:
 
-## Rutas principales
+- Registro de técnicos.
+- Gestión de usuarios.
+- Vinculación de usuarios técnicos.
+- Activación y desactivación de cuentas.
+- Control de acceso según rol.
 
-| Método | Ruta | Finalidad |
-| --- | --- | --- |
-| GET / POST | `/login` | Formulario e inicio de sesión |
-| POST | `/logout` | Cierre de sesión |
-| GET | `/dashboard` | Indicadores calculados según el usuario |
-| GET / POST | `/ordenes` | Consulta con búsqueda/filtros y registro |
-| GET | `/ordenes/nueva` | Formulario de recepción |
-| GET | `/ordenes/{id}` | Detalle y seguimiento |
-| GET / POST | `/ordenes/{id}/editar` | Edición previa al diagnóstico |
-| POST | `/ordenes/{id}/asignar` | Asignación de técnico |
-| POST | `/ordenes/{id}/diagnostico` | Registro/actualización del diagnóstico |
-| POST | `/ordenes/{id}/trabajos` | Registro de una actividad técnica |
-| POST | `/ordenes/{id}/estado` | Confirmación del siguiente estado permitido |
-| GET | `/seguimiento` | Consulta de avance para recepción |
-| GET | `/equipos/{id}/historial` | CU-14, historial exacto del equipo |
-| GET / POST | `/clientes`, `/equipos`, `/tecnicos`, `/usuarios` | Listado y registro |
-| GET | `/{directorio}/nuevo` | Formulario del directorio correspondiente |
-| GET / POST | `/{directorio}/{id}/editar` | Edición del registro |
+Roles utilizados:
 
-## Pruebas y evidencias
+- Administrador
+- Personal administrativo
+- Técnico
 
-```powershell
-.\mvnw.cmd verify
+---
+
+## Validaciones
+
+Durante el APF3 se incorporó **Spring Validator / Jakarta Validation** en los formularios principales.
+
+### Cliente
+
+Se validan:
+
+- nombres obligatorios;
+- longitud de nombres y apellidos;
+- documento obligatorio;
+- formato del documento;
+- teléfono obligatorio;
+- formato del teléfono;
+- correo obligatorio;
+- formato del correo.
+
+### Equipo
+
+Se validan:
+
+- cliente obligatorio;
+- tipo;
+- marca;
+- modelo;
+- número de serie.
+
+### Orden de servicio
+
+Se validan:
+
+- cliente;
+- equipo;
+- fecha de recepción;
+- falla reportada;
+- prioridad;
+- observaciones.
+
+También se controla que la fecha de recepción no sea futura.
+
+Los errores se muestran directamente en los formularios mediante Thymeleaf.
+
+---
+
+## Base de datos
+
+La base de datos utilizada es:
+
+```text
+MySQL 8.4
 ```
 
-La comprobación opcional en navegador requiere Node.js, Playwright y Microsoft Edge. Con Playwright disponible como módulo, iniciar primero el servidor y ejecutar desde otra terminal:
+Nombre de la base:
 
-```powershell
-node .\scripts\check-browser.cjs
+```text
+jequetech
 ```
 
-El script crea datos ficticios de prueba, recorre los roles y guarda capturas en `exports/evidencias/`. Puede configurarse `PLAYWRIGHT_MODULE` con la ruta de un módulo Playwright ya instalado, `BASE_URL` con otro puerto, `EVIDENCE_DIR` con otro directorio de salida y `BROWSER_CHANNEL` con el navegador compatible. No se necesita Node para ejecutar la aplicación Java. En memoria, reiniciar restaura la demostración; en MySQL, los registros de prueba se conservan. Para comprobar MySQL sin ensuciar una base de trabajo, usar el script aislado descrito más abajo.
+Actualmente se utilizan ocho tablas principales:
 
-Consultar [la guía de evidencias](docs/EVIDENCIAS-APF2.md), [las decisiones de alcance](docs/ALCANCE-APF2.md) y [el resultado de verificación](docs/VERIFICACION.md).
-
-### Última verificación registrada
-
-**Hito 2, 23 de octubre de 2026:** 22 pruebas con MySQL real aprobadas, recorrido de navegador PASS y datos sin diferencias tras reiniciar aplicación y base. Los registros y 23 capturas están en `exports/verificacion-mysql/`. Consultar [Verificación](docs/VERIFICACION.md) para cobertura y límites.
-
-Resultados históricos del APF2, 28 de septiembre de 2026:
-
-- **Maven:** 17 pruebas, 0 fallos, 0 errores y 0 omitidas; compilación `BUILD SUCCESS`.
-- **Navegador:** ocho grupos de comprobaciones con resultado `PASS`, incluidos el ciclo completo de una orden, los permisos por rol y la desactivación de cuentas.
-- **Responsive:** anchos de 390, 768, 1366 y 1920 píxeles; se generaron 23 capturas y se revisaron ejemplos de las vistas principales, el menú móvil y el modal.
-- **Informes locales:** `target/surefire-reports/pe.jequetech.AplicacionTest.txt` y `exports/evidencias/resultado-navegador.json`. Las capturas están en `exports/evidencias/`.
-
-Los informes de pruebas y las capturas son archivos generados y no forman parte del ZIP de fuentes. Se pueden regenerar con los comandos anteriores.
-
-## Configuración y problemas frecuentes
-
-La configuración está en `src/main/resources/application.properties`: dirección local `127.0.0.1`, puerto `8080` (o variable `PORT`) y sesión de 30 minutos. Para trabajar con otro puerto de forma puntual, usar el argumento `--server.port` mostrado arriba.
-
-| Situación | Acción |
-| --- | --- |
-| `java` no se reconoce | Instalar/configurar el JDK y comprobar `java -version` desde una nueva terminal |
-| La primera compilación no descarga dependencias | Comprobar la conexión y la configuración de proxy del entorno; volver a ejecutar Maven Wrapper |
-| El puerto 8080 está ocupado | Usar otro puerto libre y abrir la URL correspondiente |
-| No aparece el JAR | Ejecutar `.\mvnw.cmd clean verify` y comprobar que termina con `BUILD SUCCESS` |
-| Los datos vuelven a su estado inicial | Comprobar el perfil: `memoria` se reinicia; `mysql` conserva los datos |
-| Una cuenta no puede entrar | Comprobar sus credenciales y estado activo; para un técnico, también su vinculación y estado |
-| La prueba de navegador no encuentra Playwright | Configurar `PLAYWRIGHT_MODULE` con la ruta del módulo instalado; esta dependencia solo se usa para la prueba opcional |
-
-## Documentación del proyecto
-
-| Documento | Contenido |
-| --- | --- |
-| [Alcance APF2](docs/ALCANCE-APF2.md) | Casos de uso, decisiones de implementación, exclusiones y relación con la rúbrica |
-| [Evidencias APF2](docs/EVIDENCIAS-APF2.md) | Capturas que incorporar al informe y recorrido para la exposición |
-| [Verificación](docs/VERIFICACION.md) | Entorno, resultados, cobertura y límites de las comprobaciones |
-| [Guía visual](docs/identidad/GUIA-VISUAL.md) | Logo, paleta y criterios de identidad visual |
-
-## Continuidad
-
-El APF3 se desarrolla por hitos, cada uno con su verificación y commit local:
-
-1. **Esquema relacional MySQL:** ocho tablas, relaciones, restricciones, índices y prueba de integridad y reinicio. Implementado en este hito.
-2. **Persistencia de la aplicación:** entidades y adaptadores JPA/Hibernate, transacciones, generación de identificadores, bloqueo optimista y semilla que no sobrescriba registros. Implementado y probado con MySQL real.
-3. **Validación y cierre APF3:** Spring Validator, operaciones restantes según rúbrica y evidencias del recorrido persistente. Pendiente.
-
-Los contratos de repositorio permiten seleccionar el almacenamiento sin trasladar las reglas de negocio a los controladores. Los servicios mantienen una transacción por operación en el perfil MySQL; el adaptador transforma entidades JPA en objetos del dominio antes de salir de la transacción. Open Session in View está desactivado. Hibernate valida el esquema al arrancar y no crea, borra ni actualiza tablas automáticamente.
-
-La fase final incorporará Spring Security, autenticación y autorización formales, pruebas de seguridad y despliegue adecuado. El acceso actual es una demostración de sesión con contraseñas derivadas mediante PBKDF2 y token antifalsificación; no equivale a la implementación final de Spring Security. JWT solo se incorporará si la arquitectura y las indicaciones del curso lo requieren.
-
-El informe Word original se conserva sin modificaciones. Las capturas, la exposición, el Project Charter y el DER deben revisarse y completarse en su entrega académica correspondiente. No se afirma una calificación ni el cumplimiento del proyecto final.
-
-## MySQL — hitos 1 y 2 del APF3
-
-Archivos: [esquema](database/schema.sql), [pruebas SQL](database/tests/integridad.sql), [Compose](compose.yaml) y [prueba automatizada](scripts/check-database.ps1).
-
-```mermaid
-erDiagram
-    CLIENTE ||--o{ EQUIPO : posee
-    CLIENTE ||--o{ ORDEN_SERVICIO : solicita
-    EQUIPO ||--o{ ORDEN_SERVICIO : recibe
-    TECNICO o|--o{ ORDEN_SERVICIO : atiende
-    TECNICO o|--o| USUARIO : vincula
-    ORDEN_SERVICIO ||--o| DIAGNOSTICO : contiene
-    ORDEN_SERVICIO ||--o{ TRABAJO_REALIZADO : registra
-    ORDEN_SERVICIO ||--o{ EVENTO_ORDEN : conserva
+```text
+cliente
+equipo
+tecnico
+usuario
+orden_servicio
+diagnostico
+trabajo_realizado
+evento_orden
 ```
 
-El técnico puede existir sin cuenta durante el alta. Todo usuario con rol `TECNICO` exige un técnico vinculado; los demás roles no admiten ese vínculo. La relación compuesta equipo–cliente impide registrar una orden para un equipo ajeno o cambiar el propietario de un equipo con órdenes.
+Las relaciones principales son:
 
-El esquema utiliza InnoDB, claves autoincrementales y `utf8mb4_0900_as_ci` (distingue acentos e ignora mayúsculas). El diagnóstico comparte la clave de su orden. Trabajos y eventos tienen identificador global y número único dentro de cada orden. El autor del evento se conserva como texto histórico. No hay borrados SQL en cascada. JPA usa `@Version` para las órdenes y propaga los cambios de diagnóstico, trabajos e historial en la misma transacción. El historial se mapea como colección de valores del agregado: añadir un evento incrementa la versión incluso cuando no cambia el estado. Su identificador SQL interno no forma parte del dominio.
-
-Las comprobaciones entre registros —cuenta y técnico activos, secuencia de estados, diagnóstico y trabajo previos a finalizar— siguen siendo responsabilidad del servicio. Las fechas futuras se validan allí. Las restricciones SQL no sustituyen esas reglas ni aplican por sí solas un flujo de atención.
-
-### Levantar la base local
-
-Requiere Docker Desktop con contenedores Linux. Desde la raíz:
-
-```powershell
-Copy-Item .env.example .env
+```text
+Cliente
+   |
+   └── Equipo
+          |
+          └── Orden de servicio
+                  |
+                  ├── Técnico
+                  ├── Diagnóstico
+                  ├── Trabajos realizados
+                  └── Eventos / historial
 ```
 
-Editar `.env` y completar `MYSQL_ROOT_PASSWORD` y `MYSQL_PASSWORD` con contraseñas locales distintas. `MYSQL_PORT` vale `3307` por defecto y puede cambiarse si está ocupado. `.env` queda excluido de Git y del ZIP.
+El esquema se encuentra en:
 
-```powershell
-docker compose up -d --wait
-docker compose ps
-docker compose exec mysql mysql -u jequetech -p jequetech
+```text
+database/schema.sql
 ```
 
-El último comando solicita la contraseña de `MYSQL_PASSWORD`. Desde un cliente externo, usar `127.0.0.1:3307`, base y usuario `jequetech`. Se publica solo en la interfaz local. La imagen está fijada por digest para reproducir la prueba.
+---
 
-La inicialización ejecuta `database/schema.sql` únicamente cuando el volumen está vacío. No crea cuentas web ni carga datos demo. `docker compose stop` detiene la base; `docker compose start --wait` la inicia conservando el volumen. `docker compose down` retira el contenedor y la red, conservando los datos. Añadir `-v` eliminaría el volumen y sus datos: no es necesario para el uso normal.
+## Persistencia con JPA / Hibernate
 
-### Ejecutar la web con persistencia
+La persistencia MySQL se implementó utilizando JPA e Hibernate.
 
-Con MySQL saludable, para una primera demostración académica establecer `JEQUETECH_DEMO=true` en `.env` y ejecutar desde la raíz:
+El proyecto mantiene la separación entre:
+
+```text
+Controller
+   ↓
+Service
+   ↓
+Repository
+   ↓
+JPA / Hibernate
+   ↓
+MySQL
+```
+
+Los repositorios JPA utilizan `EntityManager`.
+
+También se mantiene una implementación en memoria para pruebas y ejecución alternativa.
+
+---
+
+## Pruebas realizadas
+
+Actualmente la suite contiene:
+
+```text
+32 pruebas
+```
+
+Distribuidas de la siguiente manera:
+
+```text
+AplicacionTest          17 pruebas
+CrudValidacionTest       9 pruebas
+PersistenciaMySqlTest    6 pruebas
+```
+
+Resultado de la última verificación completa con MySQL:
+
+```text
+Tests run: 32
+Failures: 0
+Errors: 0
+Skipped: 0
+```
+
+También se verificó:
+
+- creación de registros;
+- actualización;
+- eliminación;
+- reglas de negocio;
+- formularios inválidos;
+- rollback;
+- persistencia después de reiniciar la aplicación;
+- persistencia después de reiniciar MySQL;
+- recorrido funcional desde navegador.
+
+---
+
+## Verificación del CRUD de clientes
+
+Para comprobar la eliminación se realizaron dos casos.
+
+### Cliente sin equipos
+
+Resultado:
+
+```text
+Cliente eliminado correctamente.
+```
+
+La consulta posterior en MySQL confirmó que el registro ya no existía.
+
+### Cliente con equipos
+
+Resultado:
+
+```text
+No se puede eliminar un cliente con equipos registrados.
+```
+
+El cliente permaneció almacenado correctamente.
+
+---
+
+## Ejecutar el proyecto con MySQL
+
+### 1. Requisitos
+
+Se necesita:
+
+- Java 17 o superior compatible;
+- Docker Desktop;
+- PowerShell.
+
+El proyecto incluye Maven Wrapper, por lo que no es necesario instalar Maven manualmente.
+
+---
+
+### 2. Configurar variables locales
+
+Crear el archivo:
+
+```text
+.env
+```
+
+tomando como referencia:
+
+```text
+.env.example
+```
+
+Las contraseñas locales no deben subirse al repositorio.
+
+---
+
+### 3. Iniciar MySQL y la aplicación
+
+Desde la raíz del proyecto:
 
 ```powershell
 .\scripts\start-mysql.ps1
 ```
 
-Abrir `http://127.0.0.1:8080/login`. El script lee únicamente las variables de conexión y demostración permitidas de `.env`, en formato `CLAVE=valor` literal sin comillas; no evalúa código ni muestra contraseñas. Las variables ya definidas en el proceso tienen prioridad. La carga inicial es transaccional y solo comienza si usuarios, clientes, equipos, técnicos y órdenes están vacíos. Si ya hay registros, no modifica datos ni contraseñas. Se puede desactivar `JEQUETECH_DEMO` tras la inicialización; las cuentas guardadas siguen existiendo. Una base vacía con la carga desactivada no tendrá cuentas para iniciar sesión.
+Luego abrir:
 
-También se puede ejecutar el JAR con `--spring.profiles.active=mysql`, definiendo `MYSQL_PASSWORD` en el entorno. Son opcionales `MYSQL_USER` (por defecto `jequetech`) y `MYSQL_URL`. Spring Boot no carga `.env` por sí solo: el script anterior realiza esa lectura. Activar únicamente `memoria` o `mysql`, no ambos.
-
-La conexión local predeterminada usa `127.0.0.1:3307`, sin TLS y con recuperación de clave pública habilitada para el contenedor local. Para un servidor remoto se debe proporcionar otra `MYSQL_URL` con TLS y configuración apropiada; este hito no constituye un despliegue de producción. Una base del hito 1 no necesita cambios de estructura para usar esta integración.
-
-Modificar el SQL no actualiza automáticamente una base existente. Los cambios posteriores necesitarán migraciones; este script inicial falla ante tablas existentes para evitar aparentar una actualización que no realizó. No contiene `DROP TABLE`.
-
-### Comprobar el esquema sin afectar bases existentes
-
-```powershell
-.\scripts\check-database.ps1
+```text
+http://localhost:8080/login
 ```
 
-La prueba usa un contenedor de nombre único, contraseña aleatoria, sin puertos publicados y sin utilizar `.env`. Crea el esquema, verifica restricciones y rollback, y comprueba que un dato confirmado sobrevive al reinicio de MySQL. Al terminar elimina únicamente su contenedor y volumen efímeros.
+---
 
-Para comprobar la aplicación completa con MySQL:
+## Usuarios de demostración
+
+Las cuentas ficticias utilizadas durante las pruebas son:
+
+| Usuario                    | Rol                     |
+| -------------------------- | ----------------------- |
+| `admin@jequetech.test`     | Administrador           |
+| `recepcion@jequetech.test` | Personal administrativo |
+| `tecnico@jequetech.test`   | Técnico                 |
+| `ana@jequetech.test`       | Técnico                 |
+
+Contraseña de demostración:
+
+```text
+Demo2026!
+```
+
+Estas credenciales solo pertenecen al entorno académico del proyecto.
+
+---
+
+## Ejecutar las pruebas
+
+### Pruebas generales
+
+```powershell
+.\mvnw.cmd verify
+```
+
+En una ejecución normal, las pruebas exclusivas de MySQL pueden aparecer como omitidas porque requieren un entorno MySQL aislado.
+
+---
+
+### Pruebas completas con MySQL
 
 ```powershell
 .\scripts\check-persistence.ps1
-# Opcional: requiere Node.js, Playwright y Edge.
+```
+
+Este script ejecuta la verificación utilizando MySQL real.
+
+Resultado esperado:
+
+```text
+32 pruebas
+0 fallos
+0 errores
+0 omitidas
+```
+
+---
+
+### Verificación con navegador
+
+Si se dispone de Node.js, Playwright y Microsoft Edge:
+
+```powershell
 .\scripts\check-persistence.ps1 -Browser
 ```
 
-Este segundo script crea una base aislada en un puerto local aleatorio, ejecuta las 17 pruebas funcionales con JPA y cinco pruebas específicas de persistencia, arranca el JAR, reinicia la aplicación y MySQL y compara todos los registros antes y después. Con `-Browser` también ejecuta el recorrido de navegador antes de comparar los datos. Los resultados quedan en `exports/verificacion-mysql/`; la prueba elimina su contenedor y volumen al finalizar. Las cinco pruebas exclusivas MySQL se omiten intencionalmente al ejecutar Maven en modo memoria.
+En la última ejecución se realizaron:
 
-## Preparar entrega
-
-```powershell
-.\scripts\package.ps1
+```text
+10 grupos de pruebas
+26 capturas
 ```
 
-Genera `exports/jequetech-fuentes.zip` con código, wrapper, recursos, documentación y base relacional del hito actual. Excluye `.env`, cachés, archivos temporales, capturas y resultados de compilación. La copia `JequeTech-APF2-Docente` y el ZIP APF2 anteriores se conservan como entregas históricas y no se actualizan automáticamente. El JAR ejecutable se obtiene con `verify` y puede entregarse por separado si el docente lo solicita.
+Las evidencias generadas se almacenan localmente en:
 
-Ejecutar nuevamente el empaquetado después de modificar código o documentación para mantener el ZIP sincronizado. Para usarlo en otra computadora, extraerlo en una carpeta y seguir la sección **Ejecutar en Windows**. El paquete no incluye un JDK ni las dependencias de Maven descargadas.
+```text
+exports/
+```
 
-## Referencias técnicas
+Esta carpeta no se versiona en Git.
 
-- [Spring Boot: requisitos del sistema](https://docs.spring.io/spring-boot/4.0/system-requirements.html).
-- [Bootstrap 5.3: descarga y distribución](https://getbootstrap.com/docs/5.3/getting-started/download/). Se conserva su licencia MIT en `static/vendor/`.
-- [MySQL 8.4: creación de tablas y restricciones](https://dev.mysql.com/doc/refman/8.4/en/create-table.html) e [inicialización de la imagen oficial](https://hub.docker.com/_/mysql).
-- El logo fue generado específicamente para esta propuesta mediante image_gen; el prompt y la guía de color están en `docs/identidad/`. No se ha verificado exclusividad registral de marca.
+---
+
+## Estructura principal
+
+```text
+src/
+├── main/
+│   ├── java/pe/jequetech/
+│   │   ├── config/
+│   │   ├── controller/
+│   │   │   └── form/
+│   │   ├── model/
+│   │   ├── repository/
+│   │   │   ├── jpa/
+│   │   │   └── memory/
+│   │   └── service/
+│   │
+│   └── resources/
+│       ├── templates/
+│       └── static/
+│
+├── test/
+│   └── java/pe/jequetech/
+│
+database/
+├── schema.sql
+└── tests/
+
+scripts/
+
+docs/
+```
+
+---
+
+## Avances realizados
+
+### APF2
+
+Se desarrolló la base funcional del sistema:
+
+- interfaz web;
+- clientes;
+- equipos;
+- técnicos;
+- usuarios;
+- órdenes;
+- diagnóstico;
+- trabajos;
+- seguimiento;
+- historial;
+- roles y sesiones.
+
+---
+
+### APF3
+
+Hasta el momento se completó:
+
+- esquema relacional MySQL;
+- relaciones y restricciones;
+- integración JPA/Hibernate;
+- persistencia real;
+- transacciones;
+- validaciones con Jakarta Validation;
+- mensajes de error en formularios;
+- CRUD completo de clientes;
+- eliminación controlada;
+- pruebas de reglas de negocio;
+- pruebas de rollback;
+- pruebas de persistencia MySQL;
+- pruebas de navegador;
+- verificación de datos después de reinicios.
+
+---
+
+## Pendiente
+
+La parte técnica principal del APF3 se encuentra terminada.
+
+Queda pendiente principalmente la documentación académica:
+
+- actualizar el caso de uso CU02 con la eliminación controlada;
+- actualizar diagramas UML;
+- ajustar el diagrama de secuencia con Validator, JPA y MySQL;
+- incorporar el modelo de base de datos;
+- incorporar el script SQL;
+- seleccionar las capturas para el informe;
+- documentar las pruebas realizadas;
+- redactar las conclusiones;
+- preparar los anexos del APF3.
+
+Para el proyecto final todavía quedarán etapas posteriores del curso, entre ellas la revisión de seguridad y los requisitos que indique el docente.
+
+---
+
+## Última verificación
+
+Fecha:
+
+```text
+24 de octubre de 2026
+```
+
+Estado:
+
+```text
+Compilación:          BUILD SUCCESS
+Pruebas generales:    PASS
+Pruebas MySQL:         PASS
+CRUD clientes:         PASS
+Validator:             PASS
+Persistencia:          PASS
+Rollback:              PASS
+Recorrido navegador:   PASS
+```
+
+Estado técnico del APF3:
+
+```text
+LISTO PARA DOCUMENTACIÓN
+```
+
+---
+
+## Autor
+
+Proyecto académico desarrollado por **Adrian Pisco** para el curso **Marcos de Desarrollo Web**.
+
+https://chiletedevpath.com/

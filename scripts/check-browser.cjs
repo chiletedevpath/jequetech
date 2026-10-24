@@ -202,6 +202,36 @@ async function changeState(page) {
     ),
   );
   summary.checks.push("Historial exacto, búsqueda vacía y filtro por estado");
+  await visit(p, "/clientes");
+  p.once("dialog", (dialog) => dialog.accept());
+  await p.locator(`form[action='/clientes/${clientId}/eliminar'] button`).click();
+  await p.getByText("No se puede eliminar un cliente con equipos registrados.").waitFor();
+  await capture(p, "apf3-eliminacion-protegida");
+  await visit(p, "/clientes/nuevo");
+  await p.locator("#nombres").fill("Cliente eliminable " + stamp);
+  await p.locator("#documento").fill("D" + stamp);
+  await p.locator("#telefono").fill("900000099");
+  await p.locator("#correo").fill("eliminable" + stamp + "@example.test");
+  await save(p);
+  const orphanRow = p.getByRole("row").filter({ hasText: "D" + stamp });
+  p.once("dialog", (dialog) => dialog.accept());
+  await orphanRow.getByRole("button", { name: "Eliminar" }).click();
+  await p.getByText("Cliente eliminado correctamente.").waitFor();
+  assert.equal(await p.getByRole("row").filter({ hasText: "D" + stamp }).count(), 0);
+  await capture(p, "apf3-cliente-eliminado");
+  summary.checks.push("DELETE físico de cliente y protección de cliente con equipo");
+  await visit(p, "/clientes/nuevo");
+  await p.locator("#nombres").fill("Valor conservado");
+  await p.locator("#documento").fill("incorrecto!");
+  await p.locator("#telefono").fill("900000099");
+  await p.locator("#correo").fill("validacion@example.test");
+  // Desactivar solo la validación nativa para comprobar la respuesta del servidor.
+  await p.locator("form").filter({ has: p.locator("#nombres") }).evaluate((form) => { form.noValidate = true; });
+  await p.getByRole("button", { name: "Guardar cambios" }).click();
+  await p.locator("#documento.is-invalid").waitFor();
+  assert.equal(await p.locator("#nombres").inputValue(), "Valor conservado");
+  await capture(p, "apf3-validator-servidor");
+  summary.checks.push("Validator del servidor muestra errores y conserva valores");
   const adminContext = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
   });

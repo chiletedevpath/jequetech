@@ -1,5 +1,47 @@
 # Verificación del proyecto
 
+## APF3 — cierre de CRUD y Validator (24 de octubre de 2026)
+
+La omisión de pruebas MySQL en el perfil predeterminado es deliberada: `PersistenciaMySqlTest` exige `JEQUETECH_MYSQL_TEST=true`. El script de persistencia establece esa variable, activa `mysql`, crea una base aislada con credenciales temporales y retira su contenedor al terminar. Ahora también exige informes de MySQL con pruebas ejecutadas y rechaza cualquier fallo, error u omisión. No modifica la base de desarrollo.
+
+Se corrigió una diferencia de contrato: eliminar un ID inexistente en memoria ahora produce `Reglas.noExiste()`, como JPA. Se conservan la eliminación física, la transacción del servicio y la prohibición de eliminar clientes con equipos. Las FK mantienen la relación cliente–equipo–orden; no se añadió borrado de otras entidades.
+
+Las anotaciones Jakarta Validation, `@Valid`, `BindingResult` y `th:errors` ya estaban implementadas correctamente. Se añadieron nueve casos de regresión para eliminación, protección de relaciones, CSRF y formularios inválidos de alta/edición de clientes, equipos y órdenes. Verifican errores por campo, valores conservados y ausencia de escrituras. Una prueba adicional exclusiva de MySQL consulta SQL directamente para acreditar eliminación física y rollback.
+
+Resultados Maven del cierre:
+
+- `memoria`: 32 casos descubiertos, 26 ejecutados, seis omitidos intencionalmente; cero fallos y errores.
+- `mysql`: 32 ejecutados, cero fallos, errores y omisiones. Incluye seis pruebas exclusivas de persistencia.
+- Ambos recorridos ejecutan `verify`, incluida compilación y empaquetado del JAR, con `BUILD SUCCESS`.
+- Navegador: diez grupos aprobados, 26 capturas y cero errores registrados. Se inspeccionó visualmente la captura del error de documento y la conservación de los valores del formulario.
+- Reinicio real de aplicación y MySQL: `sameDataAfterRestart=true`; los datos conservaron el mismo hash. El script terminó con `PASS` y retiró su contenedor temporal.
+- `git diff --check` sin errores. Cambios preparados para revisión, sin publicación remota.
+
+Desde la raíz del repositorio, con Java y Docker disponibles:
+
+```powershell
+# Pruebas generales y compilación con el perfil predeterminado.
+.\mvnw.cmd -B verify
+# MySQL real aislado, pruebas JPA y conservación de datos tras reinicio.
+.\scripts\check-persistence.ps1
+# Añadir recorrido web y capturas; requiere Node.js, Playwright y Edge.
+.\scripts\check-persistence.ps1 -Browser
+git diff --check
+```
+
+`PLAYWRIGHT_MODULE` permite indicar la ruta de una instalación existente del módulo. Las evidencias de la última ejecución están en `exports/verificacion-mysql/`: `maven.log`, `resultado.json` y `navegador/resultado-navegador.json`. Las capturas adicionales son `apf3-cliente-eliminado.png`, `apf3-eliminacion-protegida.png` y `apf3-validator-servidor.png`. `exports/` permanece fuera de Git.
+
+### Pendiente del informe y anexos
+
+El PDF APF2 y las dos rúbricas se revisaron como fuentes académicas, sin modificar los originales. El cierre técnico no sustituye el informe ni acredita una nota.
+
+- Completar las once secciones del esquema APF3, incluyendo tecnologías, tablas y PK/FK con `database/schema.sql`, servicios y reglas, integración MVC/Thymeleaf–JPA–MySQL, pruebas, trabajo pendiente y al menos tres conclusiones propias sobre el aprendizaje.
+- Actualizar CU02 (página física 23 del PDF APF2): añadir eliminación de cliente sin equipos, rechazo si tiene equipos y resultado cuando ya no existe. Los demás casos deben describir el funcionamiento actual.
+- Actualizar el diagrama de secuencia (página física 36): reflejar validación del formulario, transacción y persistencia JPA/MySQL, conservando la redirección al detalle de la orden. No presentar `save` como una interfaz Spring Data que el código no utiliza.
+- Conservar el diagrama de clases de dominio como tal (página física 39); explicar por separado las entidades JPA y las ocho tablas. Añadir los anexos obligatorios: especificaciones y diagrama de casos de uso, secuencia, clases, capturas reales y código relevante.
+- Incorporar capturas de registro, listado, edición, eliminación, validaciones y evidencia de almacenamiento MySQL. Las maquetas del APF2 no prueban el funcionamiento del APF3.
+- Para el trabajo final, revisar adicionalmente Project Charter, DER y exposición (demostración, claridad, cámara y participación). La rúbrica final no sustituye la del APF3 ni exige migrar a `JpaRepository`, una API REST o borrar indiscriminadamente otras entidades.
+
 ## APF3 — hito 2: JPA y persistencia web (23 de octubre de 2026)
 
 Se incorporó el perfil `mysql` con JPA/Hibernate, relaciones, identificadores autogenerados, transacciones y bloqueo optimista de órdenes. El perfil predeterminado `memoria` conserva la demostración original. Hibernate valida las tablas y no modifica el esquema al arrancar.
@@ -13,7 +55,7 @@ Se incorporó el perfil `mysql` con JPA/Hibernate, relaciones, identificadores a
 
 Evidencia: `exports/verificacion-mysql/maven.log`, `resultado.json`, `arranque.log`, `reinicio.log` y `navegador/resultado-navegador.json`. El script comprueba el PID dueño del puerto HTTP y consulta de nuevo el puerto aleatorio de MySQL después de reiniciarlo. Retira sus procesos, contenedor y volumen al finalizar.
 
-El modo memoria se comprueba por separado con `mvnw.cmd -B verify`; las cinco pruebas exclusivas de MySQL se omiten intencionalmente en ese modo. No se ha incorporado todavía Spring Validator ni Spring Security. No se migran automáticamente datos desde memoria ni se actualizan las entregas históricas del APF2.
+En este hito, el modo memoria se comprobó por separado con `mvnw.cmd -B verify`; las cinco pruebas exclusivas de MySQL se omitieron intencionalmente en ese modo. Todavía no se había incorporado Spring Validator ni Spring Security. No se migran automáticamente datos desde memoria ni se actualizan las entregas históricas del APF2.
 
 ## APF3 — hito 1: base relacional (20 de octubre de 2026)
 

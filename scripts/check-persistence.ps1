@@ -82,6 +82,17 @@ try {
         & .\mvnw.cmd -B verify '-Dspring.profiles.active=mysql' '-Dapp.demo.enabled=true' > (Join-Path $output 'maven.log') 2>&1
         if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas: consultar exports/verificacion-mysql/maven.log' }
     } finally { Pop-Location }
+    $suites = @(Get-ChildItem (Join-Path $projectRoot 'target/surefire-reports/TEST-*.xml') | ForEach-Object {
+        ([xml](Get-Content -Raw -LiteralPath $_.FullName)).testsuite
+    })
+    $mysqlSuite = @($suites | Where-Object { $_.name -eq 'pe.jequetech.PersistenciaMySqlTest' })
+    if ($mysqlSuite.Count -ne 1 -or [int]$mysqlSuite[0].tests -lt 1) { throw 'Falta el informe de pruebas MySQL.' }
+    foreach ($suite in $suites) {
+        if ([int]$suite.failures -ne 0 -or [int]$suite.errors -ne 0 -or [int]$suite.skipped -ne 0) {
+            throw "Pruebas fallidas u omitidas: $($suite.name)"
+        }
+    }
+    $testCount = ($suites | ForEach-Object { [int]$_.tests } | Measure-Object -Sum).Sum
     $listener = [Net.Sockets.TcpListener]::new([Net.IPAddress]::Loopback, 0)
     $listener.Start(); $appPort = $listener.LocalEndpoint.Port; $listener.Stop()
     $env:BASE_URL = "http://127.0.0.1:$appPort"
@@ -104,7 +115,7 @@ try {
     Start-App 'reinicio'
     $after = Snapshot
     if ($before -ne $after) { throw 'El reinicio alteró los datos o la semilla los sobrescribió.' }
-    $report = [ordered]@{ result='PASS'; profile='mysql'; sameDataAfterRestart=$true; browser=[bool]$Browser }
+    $report = [ordered]@{ result='PASS'; profile='mysql'; tests=$testCount; failures=0; errors=0; skipped=0; sameDataAfterRestart=$true; browser=[bool]$Browser }
     $report | ConvertTo-Json | Set-Content (Join-Path $output 'resultado.json')
     'PASS: JPA, transacciones, concurrencia y datos íntegros tras reiniciar aplicación y MySQL.'
 } catch {

@@ -28,6 +28,49 @@ class PersistenciaMySqlTest {
   @Autowired UsuarioService usuarios;
   @Autowired DatosDemo demo;
   @Autowired PlatformTransactionManager transactionManager;
+  @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
+  @Autowired CatalogoService catalogos;
+
+  @Test
+  void eliminarClienteEsFisicoYTransaccional() {
+    String doc = UUID.randomUUID().toString().replace("-", "").substring(0, 18);
+    var c =
+        clientes.guardar(
+            new Cliente(
+                clientes.siguienteId(),
+                "Rollback",
+                "Cliente",
+                doc,
+                "900000099",
+                doc + "@example.test"));
+    try {
+      assertThrows(
+          IllegalStateException.class,
+          () ->
+              new TransactionTemplate(transactionManager)
+                  .execute(
+                      status -> {
+                        catalogos.eliminarCliente(usuarios.buscar(2), c.id());
+                        assertEquals(
+                            0,
+                            jdbc.queryForObject(
+                                "SELECT COUNT(*) FROM cliente WHERE id = ?",
+                                Integer.class,
+                                c.id()));
+                        throw new IllegalStateException("Revertir eliminación");
+                      }));
+      assertEquals(c, clientes.buscar(c.id()).orElseThrow());
+      assertEquals(
+          1,
+          jdbc.queryForObject("SELECT COUNT(*) FROM cliente WHERE id = ?", Integer.class, c.id()));
+      catalogos.eliminarCliente(usuarios.buscar(2), c.id());
+      assertEquals(
+          0,
+          jdbc.queryForObject("SELECT COUNT(*) FROM cliente WHERE id = ?", Integer.class, c.id()));
+    } finally {
+      if (clientes.buscar(c.id()).isPresent()) clientes.eliminar(c.id());
+    }
+  }
 
   private OrdenServicio nueva() {
     var f = new OrdenForm();
