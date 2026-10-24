@@ -1,7 +1,29 @@
 package pe.jequetech.controller.form;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
 public class EquipoForm {
+
+  @NotNull(message = "Selecciona un cliente.")
   private Long clienteId;
+
+  @NotBlank(message = "El tipo de equipo es obligatorio.")
+  @Size(max = 50, message = "El tipo no puede superar los 50 caracteres.")
+  private String tipo = "";
+
+  @NotBlank(message = "La marca es obligatoria.")
+  @Size(max = 60, message = "La marca no puede superar los 60 caracteres.")
+  private String marca = "";
+
+  @NotBlank(message = "El modelo es obligatorio.")
+  @Size(max = 80, message = "El modelo no puede superar los 80 caracteres.")
+  private String modelo = "";
+
+  @NotBlank(message = "El número de serie es obligatorio.")
+  @Size(max = 80, message = "El número de serie no puede superar los 80 caracteres.")
+  private String numeroSerie = "";
 
   public Long getClienteId() {
     return clienteId;
@@ -11,8 +33,6 @@ public class EquipoForm {
     clienteId = value;
   }
 
-  private String tipo = "";
-
   public String getTipo() {
     return tipo;
   }
@@ -20,8 +40,6 @@ public class EquipoForm {
   public void setTipo(String value) {
     tipo = value;
   }
-
-  private String marca = "";
 
   public String getMarca() {
     return marca;
@@ -31,8 +49,6 @@ public class EquipoForm {
     marca = value;
   }
 
-  private String modelo = "";
-
   public String getModelo() {
     return modelo;
   }
@@ -40,8 +56,6 @@ public class EquipoForm {
   public void setModelo(String value) {
     modelo = value;
   }
-
-  private String numeroSerie = "";
 
   public String getNumeroSerie() {
     return numeroSerie;
