@@ -1,7 +1,7 @@
 $ErrorActionPreference = 'Stop'
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $envFile = Join-Path $projectRoot '.env'
-$keys = @('MYSQL_PASSWORD', 'MYSQL_PORT', 'MYSQL_USER', 'MYSQL_URL', 'JEQUETECH_DEMO')
+$keys = @('MYSQL_PASSWORD', 'MYSQL_PORT', 'MYSQL_USER', 'MYSQL_URL', 'JEQUETECH_ADMIN_NAME', 'JEQUETECH_ADMIN_EMAIL', 'JEQUETECH_ADMIN_PASSWORD')
 $previous = @{}
 foreach ($key in $keys) { $previous[$key] = [Environment]::GetEnvironmentVariable($key, 'Process') }
 try {

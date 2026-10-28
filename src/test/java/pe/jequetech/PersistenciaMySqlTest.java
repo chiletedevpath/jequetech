@@ -12,12 +12,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
-import pe.jequetech.config.DatosDemo;
+import pe.jequetech.service.DatosPrueba;
 import pe.jequetech.controller.form.OrdenForm;
 import pe.jequetech.model.*;
 import pe.jequetech.repository.*;
 import pe.jequetech.service.*;
 
+@org.springframework.context.annotation.Import(pe.jequetech.service.DatosPrueba.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @EnabledIfEnvironmentVariable(named = "JEQUETECH_MYSQL_TEST", matches = "true")
@@ -26,7 +27,7 @@ class PersistenciaMySqlTest {
   @Autowired OrdenServicioRepository ordenes;
   @Autowired Repositorio<Cliente> clientes;
   @Autowired UsuarioService usuarios;
-  @Autowired DatosDemo demo;
+  @Autowired DatosPrueba demo;
   @Autowired PlatformTransactionManager transactionManager;
   @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
   @Autowired CatalogoService catalogos;

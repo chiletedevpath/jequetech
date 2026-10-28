@@ -1,0 +1,28 @@
+package pe.jequetech.config;
+
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Component;
+import pe.jequetech.service.UsuarioService;
+
+@Component
+public class AdministradorInicial implements CommandLineRunner {
+  private final UsuarioService usuarios;
+  private final Environment entorno;
+
+  public AdministradorInicial(UsuarioService usuarios, Environment entorno) {
+    this.usuarios = usuarios;
+    this.entorno = entorno;
+  }
+
+  @Override
+  public void run(String... args) {
+    if (!usuarios.todos().isEmpty()) return;
+    String correo = entorno.getProperty("JEQUETECH_ADMIN_EMAIL");
+    if (correo == null || correo.isBlank()) {
+      throw new IllegalStateException("Base sin usuarios: configura JEQUETECH_ADMIN_NAME, JEQUETECH_ADMIN_EMAIL y JEQUETECH_ADMIN_PASSWORD.");
+    }
+    usuarios.crearAdministradorInicial(entorno.getProperty("JEQUETECH_ADMIN_NAME"), correo,
+        entorno.getProperty("JEQUETECH_ADMIN_PASSWORD"));
+  }
+}

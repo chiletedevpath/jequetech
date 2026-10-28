@@ -6,7 +6,7 @@ import pe.jequetech.model.Identificable;
 
 public interface Repositorio<T extends Identificable> {
   /**
-   * En memoria reserva un id; JPA devuelve 0 y guardar retorna el id generado por
+   * JPA devuelve 0 y guardar retorna el id generado por
    * MySQL.
    */
   long siguienteId();

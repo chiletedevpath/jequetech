@@ -18,6 +18,8 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.jequetech.model.*;
 import pe.jequetech.repository.Repositorio;
 
+@org.springframework.context.annotation.Import(pe.jequetech.service.DatosPrueba.class)
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named = "JEQUETECH_MYSQL_TEST", matches = "true")
 @SpringBootTest
 @AutoConfigureMockMvc
 class CrudValidacionTest {

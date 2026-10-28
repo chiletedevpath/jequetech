@@ -21,10 +21,7 @@ Hasta el momento se ha completado la integración entre:
 - Bootstrap
 - Docker
 
-La aplicación puede ejecutarse con dos perfiles:
-
-- `memoria`: utilizado principalmente para pruebas rápidas.
-- `mysql`: utilizado para trabajar con persistencia real.
+La aplicación utiliza únicamente el perfil `mysql`. No carga registros ni cuentas ficticias.
 
 Para el APF3, la persistencia principal utilizada es **MySQL mediante JPA/Hibernate**.
 
@@ -225,7 +222,7 @@ MySQL
 
 Los repositorios JPA utilizan `EntityManager`.
 
-También se mantiene una implementación en memoria para pruebas y ejecución alternativa.
+Las pruebas utilizan MySQL aislado; sus datos de prueba no se incluyen en el JAR.
 
 ---
 
@@ -331,6 +328,7 @@ Las contraseñas locales no deben subirse al repositorio.
 Desde la raíz del proyecto:
 
 ```powershell
+docker compose up -d --wait
 .\scripts\start-mysql.ps1
 ```
 
@@ -342,36 +340,21 @@ http://localhost:8080/login
 
 ---
 
-## Usuarios de demostración
+## Primer acceso
 
-Las cuentas ficticias utilizadas durante las pruebas son:
+En una base sin usuarios, configura `JEQUETECH_ADMIN_NAME`, `JEQUETECH_ADMIN_EMAIL` y `JEQUETECH_ADMIN_PASSWORD` en `.env`. Usa tu nombre, correo y una contraseña propia de 12 a 128 caracteres. El primer arranque crea únicamente ese administrador. Después puedes retirar estas tres variables y gestionar usuarios desde la aplicación.
 
-| Usuario                    | Rol                     |
-| -------------------------- | ----------------------- |
-| `admin@jequetech.test`     | Administrador           |
-| `recepcion@jequetech.test` | Personal administrativo |
-| `tecnico@jequetech.test`   | Técnico                 |
-| `ana@jequetech.test`       | Técnico                 |
-
-Contraseña de demostración:
-
-```text
-Demo2026!
-```
-
-Estas credenciales solo pertenecen al entorno académico del proyecto.
-
----
+No se insertan clientes, equipos, técnicos ni órdenes. Los registros existentes en MySQL se conservan.
 
 ## Ejecutar las pruebas
 
-### Pruebas generales
+### Compilar sin conectar una base de pruebas
 
 ```powershell
-.\mvnw.cmd verify
+.\mvnw.cmd -B -DskipTests package
 ```
 
-En una ejecución normal, las pruebas exclusivas de MySQL pueden aparecer como omitidas porque requieren un entorno MySQL aislado.
+Las 32 pruebas de integración requieren `scripts/check-persistence.ps1`: usa una base MySQL aislada y habilita `JEQUETECH_MYSQL_TEST=true`. No actives esa variable contra la base de trabajo; las pruebas crean datos ficticios exclusivamente en su entorno temporal.
 
 ---
 
@@ -430,8 +413,7 @@ src/
 │   │   │   └── form/
 │   │   ├── model/
 │   │   ├── repository/
-│   │   │   ├── jpa/
-│   │   │   └── memory/
+│   │   │   └── jpa/
 │   │   └── service/
 │   │
 │   └── resources/

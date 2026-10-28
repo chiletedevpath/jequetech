@@ -8,12 +8,6 @@ import pe.jequetech.service.*;
 
 @ControllerAdvice
 public class VistaGlobal {
-  private final org.springframework.core.env.Environment environment;
-
-  public VistaGlobal(org.springframework.core.env.Environment environment) {
-    this.environment = environment;
-  }
-
   @ModelAttribute
   public void comunes(HttpServletRequest req, Model model) {
     Usuario u = (Usuario) req.getAttribute("actor");
@@ -24,9 +18,6 @@ public class VistaGlobal {
     model.addAttribute("rutaActual", req.getRequestURI());
     model.addAttribute("estados", EstadoOrden.values());
     model.addAttribute("prioridades", Prioridad.values());
-    model.addAttribute("persistente", environment.matchesProfiles("mysql"));
-    model.addAttribute(
-        "demoHabilitada", environment.getProperty("app.demo.enabled", Boolean.class, false));
   }
 
   @ExceptionHandler({

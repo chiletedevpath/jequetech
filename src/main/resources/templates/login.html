@@ -82,18 +82,8 @@
               Ingresar al sistema <span aria-hidden="true">→</span>
             </button>
           </form>
-          <details th:if="${demoHabilitada}" class="demo-access">
-            <summary>Accesos para la demostración</summary>
-            <p>Contraseña común: <code>Demo2026!</code></p>
-            <ul>
-              <li>Recepción: <code>recepcion@jequetech.test</code></li>
-              <li>Administrador: <code>admin@jequetech.test</code></li>
-              <li>Técnico: <code>tecnico@jequetech.test</code></li>
-              <li>Otra técnica: <code>ana@jequetech.test</code></li>
-            </ul>
-          </details>
           <p class="login-note">
-            <span th:text="${persistente} ? 'Versión académica · Los datos se conservan al reiniciar.' : 'Versión académica · Los datos se reinician al detener el servidor.'"></span>
+            <span>Los datos se conservan al reiniciar.</span>
           </p>
         </section>
       </div>

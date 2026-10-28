@@ -6,35 +6,54 @@ New-Item -ItemType Directory -Force -Path $output | Out-Null
 @{ result='RUNNING'; profile='mysql' } | ConvertTo-Json | Set-Content (Join-Path $output 'resultado.json')
 $image = (Select-String -LiteralPath (Join-Path $projectRoot 'compose.yaml') -Pattern '^\s+image:\s+(.+)$').Matches[0].Groups[1].Value.Trim()
 $name = 'jequetech-jpa-test-' + [guid]::NewGuid().ToString('N').Substring(0, 12)
-$keys = @('MYSQL_ROOT_PASSWORD','MYSQL_PASSWORD','MYSQL_USER','MYSQL_URL','JEQUETECH_DEMO','JEQUETECH_MYSQL_TEST','BASE_URL','EVIDENCE_DIR')
+$keys = @('MYSQL_ROOT_PASSWORD','MYSQL_PASSWORD','MYSQL_USER','MYSQL_URL','JEQUETECH_MYSQL_TEST','BASE_URL','EVIDENCE_DIR')
 $previous = @{}
 foreach ($key in $keys) { $previous[$key] = [Environment]::GetEnvironmentVariable($key, 'Process') }
 $created = $false
 $runState = @{ Process = $null }
 # Oracle javapath puede lanzar otro proceso. Usar el ejecutable real del JDK.
-$javaSettings = (& java -XshowSettings:properties -version 2>&1 | Out-String)
+$javaSettings = (cmd /c "java -XshowSettings:properties -version 2>&1" | Out-String)
 $javaHomeMatch = [regex]::Match($javaSettings, '(?m)^\s*java.home\s*=\s*(.+)$')
 if (-not $javaHomeMatch.Success) { throw 'No se pudo localizar el JDK real.' }
 $javaExecutable = Join-Path $javaHomeMatch.Groups[1].Value.Trim() 'bin/java.exe'
 $env:MYSQL_ROOT_PASSWORD = [guid]::NewGuid().ToString('N')
 $env:MYSQL_PASSWORD = [guid]::NewGuid().ToString('N')
 $env:MYSQL_USER = 'jequetech'
-$env:JEQUETECH_DEMO = 'true'
 $env:JEQUETECH_MYSQL_TEST = 'true'
 $client = 'MYSQL_PWD="$MYSQL_ROOT_PASSWORD" exec mysql --protocol=TCP -h127.0.0.1 -uroot --batch --skip-column-names jequetech'
 
 function Docker-Checked {
     param([string[]]$Arguments)
+
     $result = & docker @Arguments
-    if ($LASTEXITCODE -ne 0) { throw "Docker falló: $LASTEXITCODE" }
+
+    if ($LASTEXITCODE -ne 0) {
+        throw "Docker falló: $LASTEXITCODE"
+    }
+
     return $result
 }
+
 function Wait-Database {
     for ($i = 0; $i -lt 90; $i++) {
-        & docker exec $name sh -c ($client + ' -e "SELECT 1"') 2>$null | Out-Null
-        if ($LASTEXITCODE -eq 0) { return }
+        $previousErrorAction = $ErrorActionPreference
+        $ErrorActionPreference = 'Continue'
+
+        try {
+            & docker exec $name sh -c ($client + ' -e "SELECT 1"') 2>$null | Out-Null
+            $exitCode = $LASTEXITCODE
+        }
+        finally {
+            $ErrorActionPreference = $previousErrorAction
+        }
+
+        if ($exitCode -eq 0) {
+            return
+        }
+
         Start-Sleep -Seconds 2
     }
+
     throw 'MySQL no está disponible.'
 }
 function Start-App {
@@ -65,8 +84,24 @@ function Stop-App {
     $runState.Process = $null
 }
 function Snapshot {
-    $rows = Docker-Checked @('exec', $name, 'sh', '-c', 'MYSQL_PWD="$MYSQL_PASSWORD" exec mysqldump -u jequetech --no-tablespaces --skip-comments --compact --no-create-info --skip-extended-insert --skip-add-locks --order-by-primary jequetech')
-    return [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes(($rows -join "`n"))))
+    $rows = Docker-Checked @(
+        'exec',
+        $name,
+        'sh',
+        '-c',
+        'MYSQL_PWD="$MYSQL_PASSWORD" exec mysqldump -u jequetech --no-tablespaces --skip-comments --compact --no-create-info --skip-extended-insert --skip-add-locks --order-by-primary jequetech'
+    )
+
+    $bytes = [Text.Encoding]::UTF8.GetBytes(($rows -join "`n"))
+    $sha256 = [Security.Cryptography.SHA256]::Create()
+
+    try {
+        $hash = $sha256.ComputeHash($bytes)
+        return ([BitConverter]::ToString($hash)).Replace('-', '')
+    }
+    finally {
+        $sha256.Dispose()
+    }
 }
 try {
     Docker-Checked @('run', '-d', '--name', $name, '-p', '127.0.0.1::3306',
@@ -79,7 +114,7 @@ try {
     $env:MYSQL_URL = "jdbc:mysql://127.0.0.1:${port}/jequetech?allowPublicKeyRetrieval=true&sslMode=DISABLED"
     Push-Location $projectRoot
     try {
-        & .\mvnw.cmd -B verify '-Dspring.profiles.active=mysql' '-Dapp.demo.enabled=true' > (Join-Path $output 'maven.log') 2>&1
+        & .\mvnw.cmd -B verify '-Dspring.profiles.active=mysql' > (Join-Path $output 'maven.log') 2>&1
         if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas: consultar exports/verificacion-mysql/maven.log' }
     } finally { Pop-Location }
     $suites = @(Get-ChildItem (Join-Path $projectRoot 'target/surefire-reports/TEST-*.xml') | ForEach-Object {

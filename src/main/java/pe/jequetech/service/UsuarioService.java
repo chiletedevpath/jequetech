@@ -80,15 +80,11 @@ public class UsuarioService {
             f.getActivo()));
   }
 
-  public void crearDemo(String nombre, String correo, Rol rol, Long tecnicoId) {
-    usuarios.guardar(
-        new Usuario(
-            usuarios.siguienteId(),
-            nombre,
-            correo,
-            Claves.hash("Demo2026!"),
-            rol,
-            tecnicoId,
-            true));
+  public void crearAdministradorInicial(String nombre, String correo, String clave) {
+    if (!usuarios.todos().isEmpty()) return;
+    exigir(clave != null && clave.length() >= 12 && clave.length() <= 128,
+        "La contraseña inicial debe contener entre 12 y 128 caracteres.");
+    usuarios.guardar(new Usuario(usuarios.siguienteId(), texto(nombre, "Nombre", 100),
+        correo(correo), Claves.hash(clave), Rol.ADMINISTRADOR, null, true));
   }
 }

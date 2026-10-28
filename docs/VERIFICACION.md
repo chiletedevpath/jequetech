@@ -1,5 +1,13 @@
 # Verificación del proyecto
 
+## MySQL como único almacenamiento (28 de octubre de 2026)
+
+Se retiraron los repositorios en memoria y la carga de demostración del código de la aplicación. El perfil predeterminado es `mysql`. Los datos ficticios se cargan exclusivamente desde `src/test` en el MySQL aislado del script de verificación; no se incluyen en el JAR. Una base sin usuarios requiere las variables de administrador inicial descritas en el README. No se borran ni reemplazan registros existentes.
+
+Validación: 32 pruebas MySQL sin fallos, errores ni omisiones; arranque del JAR y conservación del mismo hash de datos tras reiniciar aplicación y MySQL. Ejecutar `.\scripts\check-persistence.ps1` para reproducirlo. No se ejecutó el recorrido de navegador en esta validación.
+
+Los apartados siguientes son históricos: sus referencias a memoria, cuentas demo y comandos anteriores describen esos hitos, no la configuración vigente.
+
 ## APF3 — cierre de CRUD y Validator (24 de octubre de 2026)
 
 La omisión de pruebas MySQL en el perfil predeterminado es deliberada: `PersistenciaMySqlTest` exige `JEQUETECH_MYSQL_TEST=true`. El script de persistencia establece esa variable, activa `mysql`, crea una base aislada con credenciales temporales y retira su contenedor al terminar. Ahora también exige informes de MySQL con pruebas ejecutadas y rechaza cualquier fallo, error u omisión. No modifica la base de desarrollo.

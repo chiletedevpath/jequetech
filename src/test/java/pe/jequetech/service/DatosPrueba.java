@@ -1,33 +1,33 @@
-package pe.jequetech.config;
+package pe.jequetech.service;
 
 import java.time.*;
 import java.util.*;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.stereotype.Component;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import pe.jequetech.model.*;
 import pe.jequetech.repository.Repositorio;
 import pe.jequetech.service.UsuarioService;
 
-@Component
-@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(
-    name = "app.demo.enabled",
-    havingValue = "true")
-public class DatosDemo implements CommandLineRunner {
+@TestConfiguration
+public class DatosPrueba  {
   private final Repositorio<Cliente> clientes;
   private final Repositorio<Equipo> equipos;
   private final Repositorio<Tecnico> tecnicos;
   private final Repositorio<OrdenServicio> ordenes;
   private final UsuarioService usuarios;
+  private final Repositorio<Usuario> cuentas;
   private final List<Long> clientesIds = new ArrayList<>();
   private final List<Long> equiposIds = new ArrayList<>();
   private final List<Long> tecnicosIds = new ArrayList<>();
 
-  public DatosDemo(
+  public DatosPrueba(
       Repositorio<Cliente> c,
       Repositorio<Equipo> e,
       Repositorio<Tecnico> t,
       Repositorio<OrdenServicio> o,
-      UsuarioService u) {
+      UsuarioService u, Repositorio<Usuario> cuentas) {
+    this.cuentas = cuentas;
     clientes = c;
     equipos = e;
     tecnicos = t;
@@ -162,10 +162,10 @@ public class DatosDemo implements CommandLineRunner {
                     "900000012",
                     true))
             .id());
-    usuarios.crearDemo("Administrador demo", "admin@jequetech.test", Rol.ADMINISTRADOR, null);
-    usuarios.crearDemo("Recepción demo", "recepcion@jequetech.test", Rol.ADMINISTRATIVO, null);
-    usuarios.crearDemo("Daniel Torres", "tecnico@jequetech.test", Rol.TECNICO, tecnicosIds.get(0));
-    usuarios.crearDemo("Ana Ruiz", "ana@jequetech.test", Rol.TECNICO, tecnicosIds.get(1));
+    crearUsuario("Administrador demo", "admin@jequetech.test", Rol.ADMINISTRADOR, null);
+    crearUsuario("Recepción demo", "recepcion@jequetech.test", Rol.ADMINISTRATIVO, null);
+    crearUsuario("Daniel Torres", "tecnico@jequetech.test", Rol.TECNICO, tecnicosIds.get(0));
+    crearUsuario("Ana Ruiz", "ana@jequetech.test", Rol.TECNICO, tecnicosIds.get(1));
     crearOrden(
         1, 1, 1, 1L, EstadoOrden.EN_DIAGNOSTICO, "El equipo no enciende.", Prioridad.ALTA, 4);
     crearOrden(
@@ -198,6 +198,15 @@ public class DatosDemo implements CommandLineRunner {
     crearOrden(
         5, 1, 5, 1L, EstadoOrden.ASIGNADA, "Sobrecalentamiento durante el uso.", Prioridad.BAJA, 0);
     crearOrden(6, 2, 2, 2L, EstadoOrden.ENTREGADA, "Mantenimiento preventivo.", Prioridad.BAJA, 10);
+  }
+
+  @Bean
+  @org.springframework.core.annotation.Order(org.springframework.core.Ordered.HIGHEST_PRECEDENCE)
+  CommandLineRunner cargarDatosPrueba() { return args -> run(args); }
+
+  private void crearUsuario(String nombre, String correo, Rol rol, Long tecnicoId) {
+    cuentas.guardar(new Usuario(cuentas.siguienteId(), nombre, correo,
+        Claves.hash("Demo2026!"), rol, tecnicoId, true));
   }
 
   private void crearOrden(
