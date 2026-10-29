@@ -1,6 +1,7 @@
 package pe.jequetech;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -33,7 +34,7 @@ class CrudValidacionTest {
     mvc.perform(
             post("/login")
                 .session(s)
-                .param("_csrf", s.getAttribute("csrf").toString())
+                .with(csrf())
                 .param("correo", "recepcion@jequetech.test")
                 .param("clave", "Demo2026!"))
         .andExpect(redirectedUrl("/dashboard"));
@@ -60,7 +61,7 @@ class CrudValidacionTest {
       mvc.perform(
               post("/clientes/{id}/eliminar", c.id())
                   .session(s)
-                  .param("_csrf", s.getAttribute("csrf").toString()))
+                  .with(csrf()))
           .andExpect(redirectedUrl("/clientes"))
           .andExpect(flash().attribute("exito", "Cliente eliminado correctamente."));
       assertTrue(clientes.buscar(c.id()).isEmpty());
@@ -88,7 +89,7 @@ class CrudValidacionTest {
       mvc.perform(
               post("/clientes/{id}/eliminar", c.id())
                   .session(s)
-                  .param("_csrf", s.getAttribute("csrf").toString()))
+                  .with(csrf()))
           .andExpect(redirectedUrl("/clientes"))
           .andExpect(
               flash()
@@ -122,7 +123,7 @@ class CrudValidacionTest {
       mvc.perform(
               post(editar ? "/clientes/" + c.id() + "/editar" : "/clientes")
                   .session(s)
-                  .param("_csrf", s.getAttribute("csrf").toString())
+                  .with(csrf())
                   .param("nombres", "Valor conservado")
                   .param("documento", "invalido!")
                   .param("telefono", "abc")
@@ -146,7 +147,7 @@ class CrudValidacionTest {
     mvc.perform(
             post(editar ? "/equipos/1/editar" : "/equipos")
                 .session(s)
-                .param("_csrf", s.getAttribute("csrf").toString())
+                .with(csrf())
                 .param("clienteId", "1")
                 .param("tipo", "")
                 .param("marca", "Conservada")
@@ -167,7 +168,7 @@ class CrudValidacionTest {
     mvc.perform(
             post(editar ? "/ordenes/1/editar" : "/ordenes")
                 .session(s)
-                .param("_csrf", s.getAttribute("csrf").toString())
+                .with(csrf())
                 .param("clienteId", "0")
                 .param("equipoId", "0")
                 .param("fechaRecepcion", "2999-01-01")

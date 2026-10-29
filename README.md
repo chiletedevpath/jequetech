@@ -4,7 +4,7 @@ Sistema web para la gestión y seguimiento de órdenes de servicio técnico, des
 
 El proyecto permite registrar clientes y equipos, crear órdenes de servicio, asignar técnicos, registrar diagnósticos y trabajos realizados, controlar los estados de atención y consultar el historial de cada equipo.
 
-Actualmente el desarrollo se encuentra en el cierre técnico del **APF3**.
+El APF3 está completado técnicamente y la aplicación integra **Spring Security** para el acceso y los permisos por rol.
 
 ---
 
@@ -16,6 +16,7 @@ Hasta el momento se ha completado la integración entre:
 - Spring MVC
 - Thymeleaf
 - Jakarta Validation
+- Spring Security
 - JPA / Hibernate
 - MySQL
 - Bootstrap
@@ -105,6 +106,20 @@ Roles utilizados:
 - Administrador
 - Personal administrativo
 - Técnico
+
+---
+
+## Autenticación y permisos
+
+Spring Security gestiona el inicio de sesión por correo y contraseña, la rotación del identificador de sesión, el cierre de sesión por POST y la protección CSRF. Los formularios Thymeleaf incluyen el token automáticamente. Se conservan los hashes PBKDF2 de MySQL y las contraseñas existentes.
+
+- Administrador: usuarios y técnicos.
+- Personal administrativo: clientes, equipos, seguimiento y gestión de órdenes.
+- Técnico: consulta y atención de sus propias órdenes asignadas.
+
+El estado de la cuenta, el técnico vinculado y el rol se consultan en MySQL en cada petición. Desactivar o eliminar la cuenta, o desactivar su técnico, revoca la sesión. Los cambios de rol se aplican en la siguiente petición. Las reglas de negocio siguen comprobándose en los servicios.
+
+Configuración basada en la [documentación de Spring Security](https://docs.spring.io/spring-security/reference/servlet/authentication/passwords/form.html).
 
 ---
 
@@ -231,13 +246,13 @@ Las pruebas utilizan MySQL aislado; sus datos de prueba no se incluyen en el JAR
 Actualmente la suite contiene:
 
 ```text
-32 pruebas
+37 pruebas
 ```
 
 Distribuidas de la siguiente manera:
 
 ```text
-AplicacionTest          17 pruebas
+AplicacionTest          22 pruebas
 CrudValidacionTest       9 pruebas
 PersistenciaMySqlTest    6 pruebas
 ```
@@ -245,7 +260,7 @@ PersistenciaMySqlTest    6 pruebas
 Resultado de la última verificación completa con MySQL:
 
 ```text
-Tests run: 32
+Tests run: 37
 Failures: 0
 Errors: 0
 Skipped: 0
@@ -354,7 +369,7 @@ No se insertan clientes, equipos, técnicos ni órdenes. Los registros existente
 .\mvnw.cmd -B -DskipTests package
 ```
 
-Las 32 pruebas de integración requieren `scripts/check-persistence.ps1`: usa una base MySQL aislada y habilita `JEQUETECH_MYSQL_TEST=true`. No actives esa variable contra la base de trabajo; las pruebas crean datos ficticios exclusivamente en su entorno temporal.
+Las 37 pruebas de integración requieren `scripts/check-persistence.ps1`: usa una base MySQL aislada y habilita `JEQUETECH_MYSQL_TEST=true`. No actives esa variable contra la base de trabajo; las pruebas crean datos ficticios exclusivamente en su entorno temporal.
 
 ---
 
@@ -369,7 +384,7 @@ Este script ejecuta la verificación utilizando MySQL real.
 Resultado esperado:
 
 ```text
-32 pruebas
+37 pruebas
 0 fallos
 0 errores
 0 omitidas
@@ -491,7 +506,7 @@ Queda pendiente principalmente la documentación académica:
 - redactar las conclusiones;
 - preparar los anexos del APF3.
 
-Para el proyecto final todavía quedarán etapas posteriores del curso, entre ellas la revisión de seguridad y los requisitos que indique el docente.
+El hito de autenticación y autorización con Spring Security está implementado. Para el proyecto final queda revisar los demás requisitos que indique el docente; este hito no sustituye una evaluación completa de seguridad de producción.
 
 ---
 
@@ -500,7 +515,7 @@ Para el proyecto final todavía quedarán etapas posteriores del curso, entre el
 Fecha:
 
 ```text
-24 de octubre de 2026
+28 de octubre de 2026
 ```
 
 Estado:
@@ -514,6 +529,7 @@ Validator:             PASS
 Persistencia:          PASS
 Rollback:              PASS
 Recorrido navegador:   PASS
+Spring Security:       PASS
 ```
 
 Estado técnico del APF3:

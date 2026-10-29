@@ -37,11 +37,12 @@
           <h2>Iniciar sesión</h2>
           <p class="text-secondary">Ingresa tus credenciales para continuar.</p>
           <div
-            th:if="${error}"
+            th:if="${param.error}"
             class="alert alert-danger"
             role="alert"
-            th:text="${error}"
-          ></div>
+          >
+            Correo o contraseña incorrectos, o cuenta inactiva.
+          </div>
           <div
             th:if="${param.salida}"
             class="alert alert-success"
@@ -50,7 +51,6 @@
             Sesión cerrada correctamente.
           </div>
           <form th:action="@{/login}" method="post">
-            <input type="hidden" name="_csrf" th:value="${session.csrf}" />
             <div class="mb-3">
               <label class="form-label" for="correo">Correo electrónico</label
               ><input

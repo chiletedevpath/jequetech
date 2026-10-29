@@ -108,12 +108,7 @@
               th:if="${esTecnico and (orden.estado.name() == 'ASIGNADA' or orden.estado.name() == 'EN_DIAGNOSTICO')}"
               th:action="@{/ordenes/{id}/diagnostico(id=${orden.id})}"
               method="post"
-            >
-              <input
-                type="hidden"
-                name="_csrf"
-                th:value="${session.csrf}"
-              /><input
+            ><input
                 type="hidden"
                 name="version"
                 th:value="${orden.version}"
@@ -146,12 +141,7 @@
               th:if="${esTecnico and orden.diagnostico != null and (orden.estado.name() == 'EN_DIAGNOSTICO' or orden.estado.name() == 'EN_ATENCION')}"
               th:action="@{/ordenes/{id}/trabajos(id=${orden.id})}"
               method="post"
-            >
-              <input
-                type="hidden"
-                name="_csrf"
-                th:value="${session.csrf}"
-              /><input
+            ><input
                 type="hidden"
                 name="version"
                 th:value="${orden.version}"
@@ -184,12 +174,7 @@
               th:if="${esRecepcion and orden.estado.ordinal() &lt; 2}"
               th:action="@{/ordenes/{id}/asignar(id=${orden.id})}"
               method="post"
-            >
-              <input
-                type="hidden"
-                name="_csrf"
-                th:value="${session.csrf}"
-              /><input
+            ><input
                 type="hidden"
                 name="version"
                 th:value="${orden.version}"
@@ -263,12 +248,7 @@
               th:action="@{/ordenes/{id}/estado(id=${orden.id})}"
               method="post"
             >
-              <div class="modal-body">
-                <input
-                  type="hidden"
-                  name="_csrf"
-                  th:value="${session.csrf}"
-                /><input
+              <div class="modal-body"><input
                   type="hidden"
                   name="version"
                   th:value="${orden.version}"

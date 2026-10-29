@@ -202,12 +202,7 @@
               <strong th:text="${actor.nombre}"></strong
               ><small th:text="${actor.rol.etiqueta}"></small>
             </div>
-            <form th:action="@{/logout}" method="post">
-              <input
-                type="hidden"
-                name="_csrf"
-                th:value="${session.csrf}"
-              /><button class="btn btn-sm btn-outline-secondary">Salir</button>
+            <form th:action="@{/logout}" method="post"><button class="btn btn-sm btn-outline-secondary">Salir</button>
             </form>
           </div>
         </header>

@@ -65,7 +65,8 @@ function Start-App {
         if ($runState.Process.HasExited) { throw "La aplicación terminó: consultar $Phase.log" }
         try {
             $page = Invoke-WebRequest -Uri "$env:BASE_URL/login" -UseBasicParsing
-            $owner = Get-NetTCPConnection -LocalPort $appPort -State Listen -ErrorAction SilentlyContinue
+            # Algunas versiones de NetTCPIP no interpretan State; comprobar puerto y PID directamente.
+            $owner = Get-NetTCPConnection -LocalPort $appPort -ErrorAction SilentlyContinue
             if ($page.StatusCode -eq 200 -and $owner.OwningProcess -contains $runState.Process.Id) { return }
         } catch { }
         Start-Sleep -Seconds 2

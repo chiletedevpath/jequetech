@@ -1,5 +1,15 @@
 # Verificación del proyecto
 
+## Hito de Spring Security (28 de octubre de 2026)
+
+La autenticación de formulario, el contexto de seguridad en sesión, la rotación de sesión, el cierre por POST y CSRF pasan a Spring Security. Se retiran el interceptor de sesión y el controlador POST de acceso/salida. Thymeleaf incorpora el token CSRF automáticamente en los formularios POST.
+
+El proveedor de autenticación consulta los usuarios de MySQL y conserva la compatibilidad con los hashes PBKDF2 existentes. La sesión guarda el identificador del usuario y sus autoridades; no almacena la contraseña ni su hash. Antes de autorizar cada petición se consulta el usuario actual: desactivar o eliminar la cuenta, o desactivar su técnico, invalida la sesión; los cambios de rol se aplican en la siguiente petición. Se mantienen las reglas de negocio y la restricción del técnico a sus propias órdenes.
+
+Las pruebas nuevas verifican login con token CSRF real, rotación del identificador de sesión, rechazo de logout sin token o con token inválido, permanencia de sesión ante GET logout, desactivación/eliminación de cuentas, desactivación de técnicos y cambios de rol durante una sesión existente.
+
+Validación actual: `scripts/check-persistence.ps1 -Browser` terminó con PASS: 37 pruebas, cero fallos, errores u omisiones; diez grupos del recorrido web, 26 capturas y cero errores registrados; mismo hash de datos tras reiniciar aplicación y MySQL. La comprobación del arranque valida respuesta HTTP, puerto y PID, sin filtrar por el estado que NetTCPIP no interpreta correctamente en este entorno Windows. Las evidencias locales se regeneran en `exports/verificacion-mysql/` y no se versionan.
+
 ## MySQL como único almacenamiento (28 de octubre de 2026)
 
 Se retiraron los repositorios en memoria y la carga de demostración del código de la aplicación. El perfil predeterminado es `mysql`. Los datos ficticios se cargan exclusivamente desde `src/test` en el MySQL aislado del script de verificación; no se incluyen en el JAR. Una base sin usuarios requiere las variables de administrador inicial descritas en el README. No se borran ni reemplazan registros existentes.

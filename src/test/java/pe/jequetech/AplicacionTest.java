@@ -1,6 +1,7 @@
 package pe.jequetech;
 
 import static org.hamcrest.Matchers.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -59,7 +60,7 @@ class AplicacionTest {
     mvc.perform(
             post("/login")
                 .session(session)
-                .param("_csrf", session.getAttribute("csrf").toString())
+                .with(csrf())
                 .param("correo", correo)
                 .param("clave", "Demo2026!"))
         .andExpect(redirectedUrl("/dashboard"));
@@ -79,14 +80,15 @@ class AplicacionTest {
     mvc.perform(
             post("/login")
                 .session(s)
-                .param("_csrf", s.getAttribute("csrf").toString())
+                .with(csrf())
                 .param("correo", "admin@jequetech.test")
                 .param("clave", "incorrecta"))
-        .andExpect(status().isOk())
+        .andExpect(redirectedUrl("/login?error"));
+    mvc.perform(get("/login?error").session(s))
         .andExpect(content().string(containsString("incorrectos")));
     var logged = login("recepcion@jequetech.test");
     mvc.perform(
-            post("/logout").session(logged).param("_csrf", logged.getAttribute("csrf").toString()))
+            post("/logout").session(logged).with(csrf()))
         .andExpect(redirectedUrl("/login?salida"));
     assertTrue(logged.isInvalid());
   }
@@ -246,7 +248,7 @@ class AplicacionTest {
     mvc.perform(
             post("/ordenes")
                 .session(s)
-                .param("_csrf", s.getAttribute("csrf").toString())
+                .with(csrf())
                 .param("clienteId", "1")
                 .param("equipoId", "2")
                 .param("fechaRecepcion", LocalDate.now().toString())
@@ -265,7 +267,7 @@ class AplicacionTest {
         mvc.perform(
                 post("/ordenes")
                     .session(s)
-                    .param("_csrf", s.getAttribute("csrf").toString())
+                    .with(csrf())
                     .param("clienteId", "1")
                     .param("equipoId", "1")
                     .param("fechaRecepcion", LocalDate.now().toString())
@@ -321,5 +323,90 @@ class AplicacionTest {
     f.setTecnicoId(1L);
     f.setClave("Prueba2026!");
     assertThrows(ReglaNegocioException.class, () -> usuarios.guardar(admin(), null, f));
+  }
+
+  @Autowired pe.jequetech.repository.Repositorio<Usuario> cuentas;
+  @Autowired pe.jequetech.repository.Repositorio<Tecnico> tecnicos;
+
+  @Test
+  void loginRealRotaSesionYUsaContextoSecurity() throws Exception {
+    var pagina = mvc.perform(get("/login")).andReturn();
+    var sesion = (MockHttpSession) pagina.getRequest().getSession();
+    var idAnterior = sesion.getId();
+    var token = (org.springframework.security.web.csrf.CsrfToken)
+        pagina.getRequest().getAttribute("_csrf");
+    mvc.perform(post("/login").session(sesion)
+            .param(token.getParameterName(), token.getToken())
+            .param("correo", "recepcion@jequetech.test").param("clave", "Demo2026!"))
+        .andExpect(redirectedUrl("/dashboard"));
+    assertNotEquals(idAnterior, sesion.getId());
+    var contexto = (org.springframework.security.core.context.SecurityContext)
+        sesion.getAttribute("SPRING_SECURITY_CONTEXT");
+    assertEquals(2L, contexto.getAuthentication().getPrincipal());
+    assertNull(contexto.getAuthentication().getCredentials());
+    assertNull(sesion.getAttribute("usuarioId"));
+    mvc.perform(get("/dashboard").session(sesion)).andExpect(status().isOk());
+    mvc.perform(post("/logout").session(sesion)).andExpect(status().isForbidden());
+    mvc.perform(post("/logout").session(sesion).with(csrf().useInvalidToken()))
+        .andExpect(status().isForbidden());
+    mvc.perform(get("/logout").session(sesion));
+    assertFalse(sesion.isInvalid());
+  }
+
+  @Test
+  void cuentaDesactivadaRevocaSesionExistente() throws Exception {
+    var original = usuarios.buscar(2);
+    var sesion = login(original.correo());
+    try {
+      cuentas.guardar(new Usuario(original.id(), original.nombre(), original.correo(),
+          original.claveHash(), original.rol(), original.tecnicoId(), false));
+      mvc.perform(get("/dashboard").session(sesion)).andExpect(redirectedUrl("/login"));
+      assertTrue(sesion.isInvalid());
+      mvc.perform(post("/login").with(csrf()).param("correo", original.correo())
+              .param("clave", "Demo2026!"))
+          .andExpect(redirectedUrl("/login?error"));
+    } finally { cuentas.guardar(original); }
+  }
+
+  @Test
+  void cambioDeRolSeAplicaSinReiniciarSesion() throws Exception {
+    var original = admin();
+    var sesion = login(original.correo());
+    try {
+      cuentas.guardar(new Usuario(original.id(), original.nombre(), original.correo(),
+          original.claveHash(), Rol.ADMINISTRATIVO, null, true));
+      mvc.perform(get("/usuarios").session(sesion)).andExpect(status().isForbidden());
+      mvc.perform(get("/clientes").session(sesion)).andExpect(status().isOk());
+    } finally { cuentas.guardar(original); }
+  }
+
+  @Test
+  void tecnicoInactivoRevocaSesionYRechazaLogin() throws Exception {
+    var original = tecnicos.buscar(1).orElseThrow();
+    var sesion = login("tecnico@jequetech.test");
+    try {
+      tecnicos.guardar(new Tecnico(original.id(), original.nombres(), original.especialidad(),
+          original.telefono(), false));
+      mvc.perform(get("/ordenes").session(sesion)).andExpect(redirectedUrl("/login"));
+      assertTrue(sesion.isInvalid());
+      mvc.perform(post("/login").with(csrf()).param("correo", "tecnico@jequetech.test")
+              .param("clave", "Demo2026!"))
+          .andExpect(redirectedUrl("/login?error"));
+    } finally { tecnicos.guardar(original); }
+  }
+
+  @Test
+  void cuentaEliminadaCierraSesionSinErrorInterno() throws Exception {
+    var original = admin();
+    var temporal = cuentas.guardar(new Usuario(cuentas.siguienteId(), "Temporal",
+        UUID.randomUUID() + "@example.test", original.claveHash(), Rol.ADMINISTRADOR, null, true));
+    try {
+      var sesion = login(temporal.correo());
+      cuentas.eliminar(temporal.id());
+      mvc.perform(get("/dashboard").session(sesion)).andExpect(redirectedUrl("/login"));
+      assertTrue(sesion.isInvalid());
+    } finally {
+      if (cuentas.buscar(temporal.id()).isPresent()) cuentas.eliminar(temporal.id());
+    }
   }
 }
