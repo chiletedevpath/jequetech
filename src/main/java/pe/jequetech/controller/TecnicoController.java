@@ -2,6 +2,8 @@ package pe.jequetech.controller;
 
 import static pe.jequetech.service.Reglas.*;
 
+import jakarta.validation.Valid;
+
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -53,7 +55,7 @@ public class TecnicoController {
   @PostMapping
   public String crear(
       @RequestAttribute Usuario actor,
-      @ModelAttribute("form") TecnicoForm f,
+      @Valid @ModelAttribute("form") TecnicoForm f,
       BindingResult binding,
       Model model,
       RedirectAttributes flash) {
@@ -64,7 +66,7 @@ public class TecnicoController {
   public String actualizar(
       @RequestAttribute Usuario actor,
       @PathVariable long id,
-      @ModelAttribute("form") TecnicoForm f,
+      @Valid @ModelAttribute("form") TecnicoForm f,
       BindingResult binding,
       Model model,
       RedirectAttributes flash) {

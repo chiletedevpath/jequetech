@@ -246,13 +246,14 @@ Las pruebas utilizan MySQL aislado; sus datos de prueba no se incluyen en el JAR
 Actualmente la suite contiene:
 
 ```text
-37 pruebas
+49 pruebas
 ```
 
 Distribuidas de la siguiente manera:
 
 ```text
-AplicacionTest          22 pruebas
+AdministracionValidacionTest  12 pruebas
+AplicacionTest                22 pruebas
 CrudValidacionTest       9 pruebas
 PersistenciaMySqlTest    6 pruebas
 ```
@@ -260,7 +261,7 @@ PersistenciaMySqlTest    6 pruebas
 Resultado de la última verificación completa con MySQL:
 
 ```text
-Tests run: 37
+Tests run: 49
 Failures: 0
 Errors: 0
 Skipped: 0
@@ -369,7 +370,7 @@ No se insertan clientes, equipos, técnicos ni órdenes. Los registros existente
 .\mvnw.cmd -B -DskipTests package
 ```
 
-Las 37 pruebas de integración requieren `scripts/check-persistence.ps1`: usa una base MySQL aislada y habilita `JEQUETECH_MYSQL_TEST=true`. No actives esa variable contra la base de trabajo; las pruebas crean datos ficticios exclusivamente en su entorno temporal.
+Las 49 pruebas de integración requieren `scripts/check-persistence.ps1`: usa una base MySQL aislada y habilita `JEQUETECH_MYSQL_TEST=true`. No actives esa variable contra la base de trabajo; las pruebas crean datos ficticios exclusivamente en su entorno temporal.
 
 ---
 
@@ -384,7 +385,7 @@ Este script ejecuta la verificación utilizando MySQL real.
 Resultado esperado:
 
 ```text
-37 pruebas
+49 pruebas
 0 fallos
 0 errores
 0 omitidas
@@ -403,8 +404,8 @@ Si se dispone de Node.js, Playwright y Microsoft Edge:
 En la última ejecución se realizaron:
 
 ```text
-10 grupos de pruebas
-26 capturas
+11 grupos de pruebas
+28 capturas
 ```
 
 Las evidencias generadas se almacenan localmente en:

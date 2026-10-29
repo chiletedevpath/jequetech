@@ -28,33 +28,37 @@
             ><input
               class="form-control"
               type="text"
-              th:field="*{nombre}"
+              th:errorclass="is-invalid" th:field="*{nombre}"
               maxlength="100"
               required
             />
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('nombre')}" th:errors="*{nombre}"></div>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="correo">Correo electrónico *</label
             ><input
               class="form-control"
               type="email"
-              th:field="*{correo}"
+              th:errorclass="is-invalid" th:field="*{correo}"
               maxlength="120"
               required
             />
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('correo')}" th:errors="*{correo}"></div>
           </div>
           <div class="col-md-6">
-            <label for="clave" class="form-label">Contraseña</label
+            <label for="clave" class="form-label" th:text="${id == null} ? 'Contraseña *' : 'Contraseña'">Contraseña</label
             ><input
               class="form-control"
               type="password"
               id="clave"
               name="clave"
+              th:classappend="${#fields.hasErrors('clave')} ? 'is-invalid'"
               autocomplete="new-password"
               minlength="8"
               maxlength="128"
               th:required="${id == null}"
             />
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('clave')}" th:errors="*{clave}"></div>
             <div class="form-text">
               Entre 8 y 128 caracteres. Al editar, déjala vacía para
               conservarla.
@@ -64,7 +68,7 @@
             <label for="rol" class="form-label">Rol *</label
             ><select
               class="form-select"
-              th:field="*{rol}"
+              th:errorclass="is-invalid" th:field="*{rol}"
               required
               data-role-select
             >
@@ -74,17 +78,19 @@
                 th:text="${r.etiqueta}"
               ></option>
             </select>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('rol')}" th:errors="*{rol}"></div>
           </div>
           <div class="col-md-6">
             <label for="activo" class="form-label">Estado *</label
-            ><select class="form-select" th:field="*{activo}">
+            ><select class="form-select" th:errorclass="is-invalid" th:field="*{activo}">
               <option value="true">Activo</option>
               <option value="false">Inactivo</option>
             </select>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('activo')}" th:errors="*{activo}"></div>
           </div>
           <div class="col-md-6" data-technician-link>
             <label for="tecnicoId" class="form-label">Técnico vinculado *</label
-            ><select class="form-select" th:field="*{tecnicoId}">
+            ><select class="form-select" th:errorclass="is-invalid" th:field="*{tecnicoId}">
               <option value="">Selecciona un técnico</option>
               <option
                 th:each="t : ${catalogos.tecnicos()}"
@@ -92,6 +98,8 @@
                 th:text="${t.nombres}"
               ></option>
             </select>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('tecnicoId')}" th:errors="*{tecnicoId}"></div>
+            <div class="text-danger small" th:if="${#fields.hasErrors('vinculoTecnicoValido')}" th:errors="*{vinculoTecnicoValido}"></div>
             <div class="form-text">
               Una cuenta por técnico. Registra primero al técnico en su
               directorio.

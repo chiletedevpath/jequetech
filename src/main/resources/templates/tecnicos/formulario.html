@@ -28,37 +28,41 @@
             ><input
               class="form-control"
               type="text"
-              th:field="*{nombres}"
+              th:errorclass="is-invalid" th:field="*{nombres}"
               maxlength="100"
               required
             />
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('nombres')}" th:errors="*{nombres}"></div>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="especialidad">Especialidad *</label
             ><input
               class="form-control"
               type="text"
-              th:field="*{especialidad}"
+              th:errorclass="is-invalid" th:field="*{especialidad}"
               maxlength="100"
               required
             />
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('especialidad')}" th:errors="*{especialidad}"></div>
           </div>
           <div class="col-md-6">
             <label class="form-label" for="telefono">Teléfono *</label
             ><input
               class="form-control"
               type="tel"
-              th:field="*{telefono}"
+              th:errorclass="is-invalid" th:field="*{telefono}"
               maxlength="20"
               required
             />
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('telefono')}" th:errors="*{telefono}"></div>
           </div>
           <div class="col-md-6">
             <label for="activo" class="form-label">Estado *</label
-            ><select class="form-select" th:field="*{activo}">
+            ><select class="form-select" th:errorclass="is-invalid" th:field="*{activo}">
               <option value="true">Activo</option>
               <option value="false">Inactivo</option>
             </select>
+            <div class="invalid-feedback" th:if="${#fields.hasErrors('activo')}" th:errors="*{activo}"></div>
           </div>
         </div>
         <div class="form-actions">

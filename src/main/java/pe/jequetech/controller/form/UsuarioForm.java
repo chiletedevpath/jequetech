@@ -1,6 +1,11 @@
 package pe.jequetech.controller.form;
 
+import jakarta.validation.constraints.*;
+import jakarta.validation.groups.Default;
+
 public class UsuarioForm {
+  public interface Creacion extends Default {}
+
   private boolean activo = true;
 
   public boolean getActivo() {
@@ -11,6 +16,8 @@ public class UsuarioForm {
     this.activo = activo;
   }
 
+  @NotBlank(message = "El nombre es obligatorio.")
+  @Size(max = 100, message = "El nombre no puede superar los 100 caracteres.")
   private String nombre = "";
 
   public String getNombre() {
@@ -21,6 +28,9 @@ public class UsuarioForm {
     nombre = value;
   }
 
+  @NotBlank(message = "El correo es obligatorio.")
+  @Email(message = "Ingresa un correo electrónico válido.")
+  @Size(max = 120, message = "El correo no puede superar los 120 caracteres.")
   private String correo = "";
 
   public String getCorreo() {
@@ -31,6 +41,8 @@ public class UsuarioForm {
     correo = value;
   }
 
+  @NotBlank(groups = Creacion.class, message = "La contraseña es obligatoria al crear un usuario.")
+  @Pattern(regexp = "(?s)(|.{8,128})", message = "La contraseña debe contener entre 8 y 128 caracteres.")
   private String clave = "";
 
   public String getClave() {
@@ -41,6 +53,7 @@ public class UsuarioForm {
     clave = value;
   }
 
+  @NotNull(message = "Selecciona un rol.")
   private pe.jequetech.model.Rol rol = pe.jequetech.model.Rol.ADMINISTRATIVO;
 
   public pe.jequetech.model.Rol getRol() {
@@ -51,7 +64,13 @@ public class UsuarioForm {
     rol = value;
   }
 
+  @Positive(message = "Selecciona un técnico válido.")
   private Long tecnicoId;
+
+  @AssertTrue(message = "Selecciona el técnico que estará vinculado a esta cuenta.")
+  public boolean isVinculoTecnicoValido() {
+    return rol != pe.jequetech.model.Rol.TECNICO || tecnicoId != null;
+  }
 
   public Long getTecnicoId() {
     return tecnicoId;

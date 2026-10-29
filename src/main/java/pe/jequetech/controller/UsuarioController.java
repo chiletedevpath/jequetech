@@ -2,6 +2,8 @@ package pe.jequetech.controller;
 
 import static pe.jequetech.service.Reglas.*;
 
+import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -57,7 +59,7 @@ public class UsuarioController {
   @PostMapping
   public String crear(
       @RequestAttribute Usuario actor,
-      @ModelAttribute("form") UsuarioForm f,
+      @Validated(UsuarioForm.Creacion.class) @ModelAttribute("form") UsuarioForm f,
       BindingResult binding,
       Model model,
       RedirectAttributes flash) {
@@ -68,7 +70,7 @@ public class UsuarioController {
   public String actualizar(
       @RequestAttribute Usuario actor,
       @PathVariable long id,
-      @ModelAttribute("form") UsuarioForm f,
+      @Valid @ModelAttribute("form") UsuarioForm f,
       BindingResult binding,
       Model model,
       RedirectAttributes flash) {
@@ -83,7 +85,7 @@ public class UsuarioController {
       Model model,
       RedirectAttributes flash) {
     try {
-      exigir(!binding.hasErrors(), "Revisa el rol y el técnico seleccionado.");
+      exigir(!binding.hasErrors(), "Revisa los campos indicados.");
       servicio.guardar(actor, id, f);
       flash.addFlashAttribute("exito", "Usuario guardado correctamente.");
       return "redirect:/usuarios";

@@ -6,7 +6,7 @@ Monograma geométrico JT y nombre empresarial. La referencia recibida aporta la 
 
 Esta propuesta visual no constituye una comprobación de exclusividad de marca. El PNG generado es un recurso raster; la versión vectorial del logo completo queda pendiente. La aplicación ya incluye un favicon SVG simplificado.
 
-El archivo principal del logo se conserva únicamente en [static/img/jequetech-logo.png](../../src/main/resources/static/img/jequetech-logo.png), junto al [favicon](../../src/main/resources/static/img/favicon.svg). El [prompt de generación](PROMPT.txt) documenta su origen.
+El archivo principal del logo se conserva únicamente en [static/img/jequetech-logo.png](../../src/main/resources/static/img/jequetech-logo.png), junto al [favicon](../../src/main/resources/static/img/favicon.svg).
 
 ## Paleta propuesta
 
@@ -33,5 +33,3 @@ Contraste calculado contra blanco: azul profundo 11.84:1; petróleo 4.75:1; text
 ## Origen e integración
 
 El logo está integrado en el acceso y la navegación de Spring Boot y la paleta se aplica al sistema. El alcance académico y las verificaciones de la implementación se documentan en [Alcance APF2](../ALCANCE-APF2.md) y [Verificación](../VERIFICACION.md).
-
-Generación realizada mediante la herramienta integrada image_gen, con la habilidad imagegen. La imagen adjunta se usó como referencia de nombre y familia cromática.
