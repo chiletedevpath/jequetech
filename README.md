@@ -8,7 +8,9 @@ Es un proyecto académico del curso **Marcos de Desarrollo Web**, desarrollado p
 
 La primera etapa fue construir los formularios y el flujo de atención. Después conectamos la aplicación con MySQL mediante JPA/Hibernate y retiramos el almacenamiento temporal en memoria. Los registros se conservan al cerrar y volver a iniciar el sistema.
 
-Luego integramos Spring Security para el acceso por correo y contraseña, las sesiones y los permisos. El avance más reciente completa la validación de usuarios y técnicos, con errores junto a cada campo y conservación de los datos válidos del formulario.
+Luego integramos Spring Security para el acceso por correo y contraseña, las sesiones y los permisos por rol. Los formularios de usuarios y técnicos también muestran errores junto a cada campo y conservan los valores válidos cuando hay algo que corregir.
+
+El último avance fue comprobar el primer arranque sobre una base vacía. La aplicación crea únicamente el administrador configurado, permite iniciar sesión con esa cuenta y conserva sus datos después de reiniciar Java y MySQL, incluso al retirar las variables iniciales. Esta comprobación ya forma parte del script de pruebas.
 
 Actualmente podemos:
 
@@ -32,15 +34,15 @@ Cada rol tiene sus propias funciones:
 | Personal administrativo | Clientes, equipos, registro y asignación de órdenes, seguimiento e historial. |
 | Técnico | Consulta y atención de sus propias órdenes asignadas. |
 
-Los formularios de clientes, equipos, órdenes, usuarios y técnicos tienen validaciones del servidor. Al crear una cuenta se exige contraseña; al editarla se puede dejar vacía para conservar la actual. Las peticiones que modifican datos están protegidas con CSRF. Desactivar una cuenta o su técnico revoca la sesión; cambiar su rol actualiza los permisos en la siguiente petición.
+Los formularios de clientes, equipos, órdenes, usuarios y técnicos tienen validaciones del servidor. Al crear una cuenta se exige contraseña; al editarla se puede dejar vacía para conservar la actual. Las peticiones que modifican datos están protegidas con CSRF. Si se desactiva una cuenta o su técnico, su sesión se invalida en la siguiente petición. Los cambios de rol también se aplican en la siguiente petición.
 
 ## Qué falta
 
 El flujo principal ya funciona con MySQL, pero todavía falta cerrar algunos puntos antes de dar por terminado el proyecto:
 
-- Probar una instalación desde cero, con la base vacía y un administrador propio. Las pruebas automatizadas actuales preparan sus cuentas en una base aislada.
 - Revisar los registros de demostración y pruebas que quedaron en la base de desarrollo, y decidir cuáles retirar antes de trabajar con información definitiva. La aplicación ya no los genera al arrancar.
 - Contrastar lo implementado con los requisitos de la entrega final y resolver los ajustes que salgan de esa revisión.
+- Preparar y comprobar el paquete de fuentes que se entregará.
 
 El informe, los diagramas y la exposición se preparan por separado. Este repositorio contiene el código y los recursos necesarios para ejecutar y probar el sistema. Todavía no se ha validado un despliegue de producción.
 
@@ -81,7 +83,9 @@ El archivo `.env` contiene credenciales locales y queda fuera de Git.
 
 ## Cómo comprobar los cambios
 
-La última verificación completa, del **28 de octubre de 2026**, terminó con **49 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. También se comprobó que los datos conservaran el mismo hash después de reiniciar la aplicación y MySQL.
+La última verificación completa, del **30 de octubre de 2026**, terminó con **49 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
+
+Además, se ejecutaron las comprobaciones del primer arranque en una segunda base vacía. La configuración incompleta y la contraseña inicial demasiado corta fueron rechazadas sin crear usuarios. Con una configuración válida se creó un solo administrador y no se insertaron clientes, equipos, técnicos ni órdenes. La cuenta mantuvo su acceso después de reiniciar sin las variables iniciales.
 
 Desde la raíz del proyecto, para repetir las pruebas con una base MySQL temporal:
 
