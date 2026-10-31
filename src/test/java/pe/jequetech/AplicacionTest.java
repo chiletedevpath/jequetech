@@ -177,6 +177,60 @@ class AplicacionTest {
   }
 
   @Test
+  void reasignacionConservaAvanceYTransfiereAcceso() throws Exception {
+    var o = ordenes.registrar(recepcion(), formulario());
+    long id = o.id();
+    ordenes.asignar(recepcion(), id, 1L, 0);
+    ordenes.diagnosticar(tecnico(), id, "Falla en alimentación", 1);
+    var sesion = login("recepcion@jequetech.test");
+    var otroTecnico = usuarios.buscar(4);
+    for (var estado : new EstadoOrden[] {
+        EstadoOrden.EN_DIAGNOSTICO, EstadoOrden.EN_ATENCION, EstadoOrden.FINALIZADA}) {
+      o = ordenes.buscar(recepcion(), id);
+      assertEquals(estado, o.estado());
+      var antes = o;
+      mvc.perform(get("/ordenes/" + id).session(sesion))
+          .andExpect(status().isOk())
+          .andExpect(content().string(containsString("Cambiar técnico")));
+      mvc.perform(post("/ordenes/" + id + "/asignar").session(sesion).with(csrf())
+              .param("tecnicoId", "2").param("version", Long.toString(o.version())))
+          .andExpect(redirectedUrl("/ordenes/" + id));
+      o = ordenes.buscar(otroTecnico, id);
+      assertEquals(estado, o.estado());
+      assertEquals(antes.diagnostico(), o.diagnostico());
+      assertEquals(antes.trabajos(), o.trabajos());
+      assertEquals(antes.historial(), o.historial().subList(0, antes.historial().size()));
+      assertEquals(antes.version() + 1, o.version());
+      assertEquals(antes.historial().size() + 1, o.historial().size());
+      assertTrue(o.historial().get(o.historial().size() - 1).descripcion()
+          .contains("Técnico cambiado de"));
+      assertThrows(org.springframework.web.server.ResponseStatusException.class,
+          () -> ordenes.buscar(tecnico(), id));
+      long version = o.version();
+      assertThrows(ReglaNegocioException.class,
+          () -> ordenes.asignar(recepcion(), id, 1L, antes.version()));
+      if (estado == EstadoOrden.FINALIZADA) {
+        ordenes.cambiarEstado(otroTecnico, id, EstadoOrden.ENTREGADA, version);
+      } else {
+        ordenes.asignar(recepcion(), id, 1L, version);
+        o = ordenes.buscar(tecnico(), id);
+        if (estado == EstadoOrden.EN_DIAGNOSTICO) {
+          ordenes.trabajo(tecnico(), id, "Reparación", o.version());
+        } else {
+          ordenes.cambiarEstado(tecnico(), id, EstadoOrden.FINALIZADA, o.version());
+        }
+      }
+    }
+    o = ordenes.buscar(recepcion(), id);
+    long version = o.version();
+    assertThrows(ReglaNegocioException.class,
+        () -> ordenes.asignar(recepcion(), id, 1L, version));
+    mvc.perform(get("/ordenes/" + id).session(sesion))
+        .andExpect(status().isOk())
+        .andExpect(content().string(not(containsString("Cambiar técnico"))));
+  }
+
+  @Test
   void validaPropietarioFechaYCampos() {
     var f = formulario();
     f.setEquipoId(2L);

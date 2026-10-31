@@ -171,7 +171,7 @@
               th:text="${orden.tecnicoId != null ? catalogos.tecnico(orden.tecnicoId).especialidad : 'Asigna un responsable para continuar.'}"
             ></p>
             <form
-              th:if="${esRecepcion and orden.estado.ordinal() &lt; 2}"
+              th:if="${esRecepcion and orden.estado.name() != 'ENTREGADA'}"
               th:action="@{/ordenes/{id}/asignar(id=${orden.id})}"
               method="post"
             ><input
@@ -193,7 +193,8 @@
                   th:text="${t.nombres}"
                   th:selected="${t.id == orden.tecnicoId}"
                 ></option></select
-              ><button class="btn btn-primary w-100">Asignar técnico</button>
+              ><button class="btn btn-primary w-100"
+                  th:text="${orden.tecnicoId == null ? 'Asignar técnico' : 'Cambiar técnico'}">Asignar técnico</button>
             </form>
             <div th:if="${esTecnico and siguiente != null}">
               <hr />

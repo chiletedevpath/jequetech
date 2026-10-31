@@ -128,8 +128,8 @@ public class OrdenServicioService {
     OrdenServicio o = buscar(actor, id);
     version(o, version);
     exigir(
-        o.estado() == EstadoOrden.REGISTRADA || o.estado() == EstadoOrden.ASIGNADA,
-        "La asignación se cambia antes de iniciar el diagnóstico.");
+        o.estado() != EstadoOrden.ENTREGADA,
+        "No se puede reasignar una orden entregada.");
     exigir(tecnicoId != null, "Selecciona un técnico.");
     exigir(
         catalogos.tecnicoHabilitado(tecnicoId),
@@ -139,10 +139,13 @@ public class OrdenServicioService {
         o,
         actor,
         tecnicoId,
-        EstadoOrden.ASIGNADA,
+        o.estado() == EstadoOrden.REGISTRADA ? EstadoOrden.ASIGNADA : o.estado(),
         o.diagnostico(),
         o.trabajos(),
-        "Técnico asignado: " + catalogos.tecnico(tecnicoId).nombres());
+        o.tecnicoId() == null
+            ? "Técnico asignado: " + catalogos.tecnico(tecnicoId).nombres()
+            : "Técnico cambiado de " + catalogos.tecnico(o.tecnicoId()).nombres()
+                + " a " + catalogos.tecnico(tecnicoId).nombres());
   }
 
   public synchronized void diagnosticar(Usuario actor, long id, String descripcion, long version) {

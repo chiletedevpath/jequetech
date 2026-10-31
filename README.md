@@ -18,7 +18,7 @@ Actualmente podemos:
 
 - Registrar, consultar, editar y eliminar clientes. La eliminación se rechaza si el cliente tiene equipos asociados.
 - Registrar y editar equipos, asociarlos con su cliente y consultar su historial de atención.
-- Crear órdenes, registrar la falla y la prioridad, asignar un técnico y consultar el seguimiento.
+- Crear órdenes, registrar la falla y la prioridad, asignar un técnico y consultar el seguimiento. El personal administrativo puede cambiar al responsable mientras la orden no esté entregada, conservando el avance y dejando constancia en el historial.
 - Registrar diagnósticos y trabajos, y avanzar por los estados de atención respetando las reglas del sistema.
 - Gestionar técnicos y usuarios, vincular sus cuentas y activar o desactivar su acceso.
 
@@ -84,7 +84,7 @@ El archivo `.env` contiene credenciales locales y queda fuera de Git.
 
 ## Cómo comprobar los cambios
 
-La última verificación completa, del **31 de octubre de 2026**, terminó con **49 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
+La última verificación completa, del **31 de octubre de 2026**, terminó con **50 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
 
 Además, se ejecutaron las comprobaciones del primer arranque en una segunda base vacía. La configuración incompleta y la contraseña inicial demasiado corta fueron rechazadas sin crear usuarios. Con una configuración válida se creó un solo administrador y no se insertaron clientes, equipos, técnicos ni órdenes. La cuenta mantuvo su acceso después de reiniciar sin las variables iniciales.
 
