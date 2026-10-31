@@ -16,7 +16,9 @@ import pe.jequetech.service.UsuarioService;
 final class UsuarioActualFilter extends OncePerRequestFilter {
   private final UsuarioService usuarios;
 
-  UsuarioActualFilter(UsuarioService usuarios) { this.usuarios = usuarios; }
+  UsuarioActualFilter(UsuarioService usuarios) {
+    this.usuarios = usuarios;
+  }
 
   @Override
   protected void doFilterInternal(HttpServletRequest req, HttpServletResponse res, FilterChain chain)
@@ -24,8 +26,9 @@ final class UsuarioActualFilter extends OncePerRequestFilter {
     var autenticacion = SecurityContextHolder.getContext().getAuthentication();
     if (autenticacion != null && autenticacion.getPrincipal() instanceof Long id) {
       Usuario usuario = null;
-      try { usuario = usuarios.buscar(id); }
-      catch (ResponseStatusException ex) {
+      try {
+        usuario = usuarios.buscar(id);
+      } catch (ResponseStatusException ex) {
         if (ex.getStatusCode().value() != 404) throw ex;
       }
       if (usuario == null || !usuarios.habilitado(usuario)) {
@@ -36,8 +39,9 @@ final class UsuarioActualFilter extends OncePerRequestFilter {
         return;
       }
       var contexto = SecurityContextHolder.createEmptyContext();
-      contexto.setAuthentication(UsernamePasswordAuthenticationToken.authenticated(id, null,
-          List.of(new SimpleGrantedAuthority("ROLE_" + usuario.rol().name()))));
+      contexto.setAuthentication(
+          UsernamePasswordAuthenticationToken.authenticated(
+              id, null, List.of(new SimpleGrantedAuthority("ROLE_" + usuario.rol().name()))));
       SecurityContextHolder.setContext(contexto);
       req.setAttribute("actor", usuario);
     }

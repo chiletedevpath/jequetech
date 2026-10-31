@@ -11,6 +11,7 @@ final class Claves {
   static String hash(String clave) {
     byte[] salt = new byte[16];
     new SecureRandom().nextBytes(salt);
+    // Se guarda la sal junto al resultado para comprobar la contraseña después.
     return Base64.getEncoder().encodeToString(salt)
         + ":"
         + Base64.getEncoder().encodeToString(derivar(clave, salt));

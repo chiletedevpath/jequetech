@@ -68,6 +68,7 @@ public class UsuarioService {
     exigir(
         old != null && clave.isEmpty() || clave.length() >= 8 && clave.length() <= 128,
         "La contraseña debe contener entre 8 y 128 caracteres.");
+    // En una edición, dejar la contraseña vacía conserva la actual.
     String hash = old != null && clave.isEmpty() ? old.claveHash() : Claves.hash(clave);
     return usuarios.guardar(
         new Usuario(

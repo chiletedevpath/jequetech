@@ -17,12 +17,16 @@ public class AdministradorInicial implements CommandLineRunner {
 
   @Override
   public void run(String... args) {
+    // La configuración inicial no modifica cuentas existentes.
     if (!usuarios.todos().isEmpty()) return;
     String correo = entorno.getProperty("JEQUETECH_ADMIN_EMAIL");
     if (correo == null || correo.isBlank()) {
-      throw new IllegalStateException("Base sin usuarios: configura JEQUETECH_ADMIN_NAME, JEQUETECH_ADMIN_EMAIL y JEQUETECH_ADMIN_PASSWORD.");
+      throw new IllegalStateException(
+          "Base sin usuarios: configura JEQUETECH_ADMIN_NAME, JEQUETECH_ADMIN_EMAIL y JEQUETECH_ADMIN_PASSWORD.");
     }
-    usuarios.crearAdministradorInicial(entorno.getProperty("JEQUETECH_ADMIN_NAME"), correo,
+    usuarios.crearAdministradorInicial(
+        entorno.getProperty("JEQUETECH_ADMIN_NAME"),
+        correo,
         entorno.getProperty("JEQUETECH_ADMIN_PASSWORD"));
   }
 }

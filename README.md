@@ -10,7 +10,9 @@ La primera etapa fue construir los formularios y el flujo de atención. Después
 
 Luego integramos Spring Security para el acceso por correo y contraseña, las sesiones y los permisos por rol. Los formularios de usuarios y técnicos también muestran errores junto a cada campo y conservan los valores válidos cuando hay algo que corregir.
 
-El último avance fue comprobar el primer arranque sobre una base vacía. La aplicación crea únicamente el administrador configurado, permite iniciar sesión con esa cuenta y conserva sus datos después de reiniciar Java y MySQL, incluso al retirar las variables iniciales. Esta comprobación ya forma parte del script de pruebas.
+También comprobamos el primer arranque sobre una base vacía. La aplicación crea únicamente el administrador configurado, permite iniciar sesión con esa cuenta y conserva sus datos después de reiniciar Java y MySQL, incluso al retirar las variables iniciales. Esta comprobación ya forma parte del script de pruebas.
+
+La revisión de la rúbrica confirmó que están cubiertos los ocho criterios de desarrollo técnico. Después ajustamos el formato del código y los comentarios sobre decisiones puntuales. El paquete de fuentes también compiló desde una extracción limpia.
 
 Actualmente podemos:
 
@@ -41,8 +43,7 @@ Los formularios de clientes, equipos, órdenes, usuarios y técnicos tienen vali
 El flujo principal ya funciona con MySQL, pero todavía falta cerrar algunos puntos antes de dar por terminado el proyecto:
 
 - Revisar los registros de demostración y pruebas que quedaron en la base de desarrollo, y decidir cuáles retirar antes de trabajar con información definitiva. La aplicación ya no los genera al arrancar.
-- Contrastar lo implementado con los requisitos de la entrega final y resolver los ajustes que salgan de esa revisión.
-- Preparar y comprobar el paquete de fuentes que se entregará.
+- Hacer una última revisión de los datos y accesos que se usarán en la demostración.
 
 El informe, los diagramas y la exposición se preparan por separado. Este repositorio contiene el código y los recursos necesarios para ejecutar y probar el sistema. Todavía no se ha validado un despliegue de producción.
 
@@ -83,7 +84,7 @@ El archivo `.env` contiene credenciales locales y queda fuera de Git.
 
 ## Cómo comprobar los cambios
 
-La última verificación completa, del **30 de octubre de 2026**, terminó con **49 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
+La última verificación completa, del **31 de octubre de 2026**, terminó con **49 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
 
 Además, se ejecutaron las comprobaciones del primer arranque en una segunda base vacía. La configuración incompleta y la contraseña inicial demasiado corta fueron rechazadas sin crear usuarios. Con una configuración válida se creó un solo administrador y no se insertaron clientes, equipos, técnicos ni órdenes. La cuenta mantuvo su acceso después de reiniciar sin las variables iniciales.
 
