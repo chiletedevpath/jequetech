@@ -4,12 +4,13 @@ import static pe.jequetech.service.Reglas.*;
 
 import java.util.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import pe.jequetech.controller.form.UsuarioForm;
 import pe.jequetech.model.*;
 import pe.jequetech.repository.Repositorio;
 
 @Service
-@org.springframework.transaction.annotation.Transactional
+@Transactional
 public class UsuarioService {
   private final Repositorio<Usuario> usuarios;
   private final CatalogoService catalogos;

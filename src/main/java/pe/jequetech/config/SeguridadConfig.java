@@ -3,7 +3,9 @@ package pe.jequetech.config;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,10 +21,11 @@ public class SeguridadConfig {
     return new AuthenticationProvider() {
       @Override
       public Authentication authenticate(Authentication intento) {
-        var usuario = usuarios.autenticar(intento.getName(), (String) intento.getCredentials())
-            .orElseThrow(() -> new BadCredentialsException("Credenciales incorrectas"));
-        return UsernamePasswordAuthenticationToken.authenticated(usuario.id(), null,
-            List.of(new SimpleGrantedAuthority("ROLE_" + usuario.rol().name())));
+        var usuario =
+            usuarios.autenticar(intento.getName(), (String) intento.getCredentials())
+                .orElseThrow(() -> new BadCredentialsException("Credenciales incorrectas"));
+        return UsernamePasswordAuthenticationToken.authenticated(
+            usuario.id(), null, List.of(new SimpleGrantedAuthority("ROLE_" + usuario.rol().name())));
       }
 
       @Override
@@ -33,20 +36,31 @@ public class SeguridadConfig {
   }
 
   @Bean
-  SecurityFilterChain seguridad(HttpSecurity http, AuthenticationProvider autenticacionMySql,
-      UsuarioService usuarios) throws Exception {
+  SecurityFilterChain seguridad(
+      HttpSecurity http, AuthenticationProvider autenticacionMySql, UsuarioService usuarios)
+      throws Exception {
     http.authenticationProvider(autenticacionMySql)
         .authorizeHttpRequests(reglas -> reglas
             .dispatcherTypeMatchers(jakarta.servlet.DispatcherType.ERROR).permitAll()
-            .requestMatchers("/login", "/css/**", "/js/**", "/img/**", "/vendor/**", "/favicon.ico").permitAll()
-            .requestMatchers("/usuarios", "/usuarios/**", "/tecnicos", "/tecnicos/**").hasRole("ADMINISTRADOR")
-            .requestMatchers("/clientes", "/clientes/**", "/equipos", "/equipos/**", "/seguimiento", "/seguimiento/**").hasRole("ADMINISTRATIVO")
+            .requestMatchers("/login", "/css/**", "/js/**", "/img/**", "/vendor/**", "/favicon.ico")
+            .permitAll()
+            .requestMatchers("/usuarios", "/usuarios/**", "/tecnicos", "/tecnicos/**")
+            .hasRole("ADMINISTRADOR")
+            .requestMatchers(
+                "/clientes", "/clientes/**", "/equipos", "/equipos/**",
+                "/seguimiento", "/seguimiento/**")
+            .hasRole("ADMINISTRATIVO")
             .anyRequest().authenticated())
         .formLogin(login -> login.loginPage("/login")
-            .usernameParameter("correo").passwordParameter("clave")
-            .defaultSuccessUrl("/dashboard", true).failureUrl("/login?error").permitAll())
-        .logout(logout -> logout.logoutUrl("/logout").logoutSuccessUrl("/login?salida")
-            .invalidateHttpSession(true).deleteCookies("JSESSIONID"))
+            .usernameParameter("correo")
+            .passwordParameter("clave")
+            .defaultSuccessUrl("/dashboard", true)
+            .failureUrl("/login?error")
+            .permitAll())
+        .logout(logout -> logout.logoutUrl("/logout")
+            .logoutSuccessUrl("/login?salida")
+            .invalidateHttpSession(true)
+            .deleteCookies("JSESSIONID"))
         .sessionManagement(sesion -> sesion.sessionFixation(fijacion -> fijacion.changeSessionId()))
         .requestCache(cache -> cache.requestCache(new NullRequestCache()))
         .exceptionHandling(errores -> errores.authenticationEntryPoint(

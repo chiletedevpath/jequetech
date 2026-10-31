@@ -11,7 +11,7 @@
   <artifactId>jequetech</artifactId>
   <version>0.1.0</version>
   <name>JequeTech Solutions S.A.C.</name>
-  <description>Gestión y seguimiento de órdenes de servicio técnico — APF3</description>
+  <description>Gestión y seguimiento de órdenes de servicio técnico</description>
   <properties>
     <java.version>17</java.version>
   </properties>

@@ -2,6 +2,7 @@ package pe.jequetech.controller.form;
 
 import jakarta.validation.constraints.*;
 import jakarta.validation.groups.Default;
+import pe.jequetech.model.Rol;
 
 public class UsuarioForm {
   public interface Creacion extends Default {}
@@ -54,13 +55,13 @@ public class UsuarioForm {
   }
 
   @NotNull(message = "Selecciona un rol.")
-  private pe.jequetech.model.Rol rol = pe.jequetech.model.Rol.ADMINISTRATIVO;
+  private Rol rol = Rol.ADMINISTRATIVO;
 
-  public pe.jequetech.model.Rol getRol() {
+  public Rol getRol() {
     return rol;
   }
 
-  public void setRol(pe.jequetech.model.Rol value) {
+  public void setRol(Rol value) {
     rol = value;
   }
 
@@ -69,7 +70,7 @@ public class UsuarioForm {
 
   @AssertTrue(message = "Selecciona el técnico que estará vinculado a esta cuenta.")
   public boolean isVinculoTecnicoValido() {
-    return rol != pe.jequetech.model.Rol.TECNICO || tecnicoId != null;
+    return rol != Rol.TECNICO || tecnicoId != null;
   }
 
   public Long getTecnicoId() {

@@ -6,13 +6,14 @@ import java.time.*;
 import java.util.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import pe.jequetech.controller.form.OrdenForm;
 import pe.jequetech.model.*;
 import pe.jequetech.repository.OrdenServicioRepository;
 
 @Service
-@org.springframework.transaction.annotation.Transactional
+@Transactional
 public class OrdenServicioService {
   private final OrdenServicioRepository ordenes;
   private final CatalogoService catalogos;
