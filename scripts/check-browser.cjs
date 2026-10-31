@@ -327,7 +327,6 @@ async function changeState(page) {
       [orderRoute, "detalle"],
       ["/clientes", "clientes"],
       ["/equipos", "equipos"],
-      ["/seguimiento", "seguimiento"],
     ]) {
       await visit(p, route);
       assert.ok(

@@ -96,6 +96,10 @@ class AplicacionTest {
   @Test
   void renderizaPantallasRecepcion() throws Exception {
     var s = login("recepcion@jequetech.test");
+    mvc.perform(get("/ordenes").session(s))
+        .andExpect(status().isOk())
+        .andExpect(content().string(not(containsString("href=\"/seguimiento\""))));
+    mvc.perform(get("/seguimiento").session(s)).andExpect(status().isNotFound());
     for (String ruta :
         new String[] {
           "/dashboard",
@@ -108,8 +112,7 @@ class AplicacionTest {
           "/equipos",
           "/equipos/nuevo",
           "/equipos/1/editar",
-          "/equipos/1/historial",
-          "/seguimiento"
+          "/equipos/1/historial"
         }) {
       mvc.perform(get(ruta).session(s))
           .andExpect(status().isOk())

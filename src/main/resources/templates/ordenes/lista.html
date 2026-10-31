@@ -10,7 +10,7 @@
         <div>
           <div class="eyebrow">GESTIÓN Y SEGUIMIENTO</div>
           <h1
-            th:text="${modoSeguimiento == true} ? 'Seguimiento de órdenes' : (${esTecnico} ? 'Mis órdenes asignadas' : 'Órdenes de servicio')"
+            th:text="${esTecnico} ? 'Mis órdenes asignadas' : 'Órdenes de servicio'"
           ></h1>
           <p>Consulta cada atención y su estado actual.</p>
         </div>
@@ -24,7 +24,7 @@
       <section class="card">
         <form
           class="row g-3 filter-bar"
-          th:action="${modoSeguimiento == true} ? @{/seguimiento} : @{/ordenes}"
+          th:action="@{/ordenes}"
           method="get"
         >
           <div class="col-md-6">

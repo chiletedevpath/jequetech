@@ -2,7 +2,7 @@
 
 JequeTech es un sistema web para organizar las órdenes de un servicio técnico. Permite saber qué equipo ingresó, a quién pertenece, qué falla presenta, quién lo atiende y qué trabajos se realizaron hasta su entrega.
 
-Es un proyecto académico del curso **Marcos de Desarrollo Web**, desarrollado por **Adrian Pisco**. Está en desarrollo y por ahora se ejecuta en un entorno local.
+Es un proyecto académico del curso **Marcos de Desarrollo Web**, desarrollado por **Adrian Pisco**. El flujo principal está implementado y validado en un entorno local.
 
 ## Qué hemos avanzado
 
@@ -14,10 +14,12 @@ También comprobamos el primer arranque sobre una base vacía. La aplicación cr
 
 La revisión de la rúbrica confirmó que están cubiertos los ocho criterios de desarrollo técnico. Después ajustamos el formato del código y los comentarios sobre decisiones puntuales. El paquete de fuentes también compiló desde una extracción limpia.
 
+La gestión y el seguimiento están reunidos en **Órdenes de servicio**. Desde esa pantalla se filtran las órdenes y se abre el detalle con el avance, las intervenciones y el historial. Retiramos la entrada de seguimiento que duplicaba el mismo listado.
+
 Actualmente podemos:
 
 - Registrar, consultar, editar y eliminar clientes. La eliminación se rechaza si el cliente tiene equipos asociados.
-- Registrar y editar equipos, asociarlos con su cliente y consultar su historial de atención.
+- Registrar equipos, asociarlos con su cliente y consultar su historial de atención. La identidad del cliente y del equipo se puede corregir mientras no tengan órdenes registradas.
 - Crear órdenes, registrar la falla y la prioridad, asignar un técnico y consultar el seguimiento. El personal administrativo puede cambiar al responsable mientras la orden no esté entregada, conservando el avance y dejando constancia en el historial.
 - Registrar diagnósticos y trabajos, y avanzar por los estados de atención respetando las reglas del sistema.
 - Gestionar técnicos y usuarios, vincular sus cuentas y activar o desactivar su acceso.

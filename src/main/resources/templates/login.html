@@ -16,15 +16,21 @@
           <div>
             <span class="story-tag">Servicio técnico, conectado.</span>
             <h1>
-              Cada equipo.<br />Cada atención.<br /><em>Todo en orden.</em>
+              Cada equipo.
+              <br />
+              Cada atención.
+              <br />
+              <em>Todo en orden.</em>
             </h1>
             <p>
-              Un espacio para organizar las órdenes de servicio y acompañar cada
-              atención, desde la recepción hasta la entrega.
+              Un espacio para organizar las órdenes de servicio y acompañar cada atención, desde la
+              recepción hasta la entrega.
             </p>
           </div>
           <div class="story-footer">
-            CHILETE <span>—</span> VALLE DEL JEQUETEPEQUE
+            CHILETE
+            <span>—</span>
+            VALLE DEL JEQUETEPEQUE
           </div>
         </section>
         <section class="col-lg-6 login-form">
@@ -36,24 +42,16 @@
           <div class="eyebrow text-secondary mt-4">BIENVENIDO A TU ESPACIO</div>
           <h2>Iniciar sesión</h2>
           <p class="text-secondary">Ingresa tus credenciales para continuar.</p>
-          <div
-            th:if="${param.error}"
-            class="alert alert-danger"
-            role="alert"
-          >
+          <div th:if="${param.error}" class="alert alert-danger" role="alert">
             Correo o contraseña incorrectos, o cuenta inactiva.
           </div>
-          <div
-            th:if="${param.salida}"
-            class="alert alert-success"
-            role="status"
-          >
+          <div th:if="${param.salida}" class="alert alert-success" role="status">
             Sesión cerrada correctamente.
           </div>
           <form th:action="@{/login}" method="post">
             <div class="mb-3">
-              <label class="form-label" for="correo">Correo electrónico</label
-              ><input
+              <label class="form-label" for="correo">Correo electrónico</label>
+              <input
                 id="correo"
                 name="correo"
                 type="email"
@@ -66,8 +64,8 @@
               />
             </div>
             <div class="mb-4">
-              <label class="form-label" for="clave">Contraseña</label
-              ><input
+              <label class="form-label" for="clave">Contraseña</label>
+              <input
                 id="clave"
                 name="clave"
                 type="password"
@@ -79,12 +77,10 @@
               />
             </div>
             <button class="btn btn-primary w-100">
-              Ingresar al sistema <span aria-hidden="true">→</span>
+              Ingresar al sistema
+              <span aria-hidden="true">→</span>
             </button>
           </form>
-          <p class="login-note">
-            <span>Los datos se conservan al reiniciar.</span>
-          </p>
         </section>
       </div>
     </main>

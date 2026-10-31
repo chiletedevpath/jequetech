@@ -182,10 +182,6 @@ textarea {
   font-size: 11px;
   color: var(--jt-muted);
 }
-.sidebar-bottom p {
-  font-size: 11px;
-  margin-top: 9px;
-}
 .live-dot {
   display: inline-block;
   width: 7px;
@@ -675,11 +671,6 @@ textarea {
 .login-form > p {
   font-size: 13px;
   margin-bottom: 25px;
-}
-.login-note {
-  margin-top: 22px;
-  color: var(--jt-muted);
-  font-size: 10px !important;
 }
 .skip-link {
   position: fixed;

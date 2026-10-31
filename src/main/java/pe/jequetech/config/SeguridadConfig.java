@@ -47,8 +47,7 @@ public class SeguridadConfig {
             .requestMatchers("/usuarios", "/usuarios/**", "/tecnicos", "/tecnicos/**")
             .hasRole("ADMINISTRADOR")
             .requestMatchers(
-                "/clientes", "/clientes/**", "/equipos", "/equipos/**",
-                "/seguimiento", "/seguimiento/**")
+                "/clientes", "/clientes/**", "/equipos", "/equipos/**")
             .hasRole("ADMINISTRATIVO")
             .anyRequest().authenticated())
         .formLogin(login -> login.loginPage("/login")

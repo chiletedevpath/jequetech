@@ -137,7 +137,7 @@ try {
     $env:MYSQL_URL = "jdbc:mysql://127.0.0.1:${port}/jequetech?allowPublicKeyRetrieval=true&sslMode=DISABLED"
     Push-Location $projectRoot
     try {
-        & .\mvnw.cmd -B verify '-Dspring.profiles.active=mysql' > (Join-Path $output 'maven.log') 2>&1
+        & .\mvnw.cmd -B clean verify '-Dspring.profiles.active=mysql' > (Join-Path $output 'maven.log') 2>&1
         if ($LASTEXITCODE -ne 0) { throw 'Fallaron las pruebas: consultar exports/verificacion-mysql/maven.log' }
     } finally { Pop-Location }
     $suites = @(Get-ChildItem (Join-Path $projectRoot 'target/surefire-reports/TEST-*.xml') | ForEach-Object {
