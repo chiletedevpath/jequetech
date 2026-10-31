@@ -65,6 +65,10 @@ public class UsuarioService {
               .noneMatch(u -> tid.equals(u.tecnicoId()) && !Long.valueOf(u.id()).equals(id)),
           "Ese técnico ya tiene un usuario vinculado.");
     }
+    if (old != null && old.rol() == Rol.TECNICO && catalogos.tieneOrdenesPendientes(old.tecnicoId())) {
+      exigir(f.getRol() == Rol.TECNICO && Objects.equals(old.tecnicoId(), tecnicoId),
+          "Reasigna las órdenes pendientes antes de cambiar el rol o el vínculo del técnico.");
+    }
     String clave = f.getClave() == null ? "" : f.getClave();
     exigir(
         old != null && clave.isEmpty() || clave.length() >= 8 && clave.length() <= 128,

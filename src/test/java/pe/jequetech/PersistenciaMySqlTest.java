@@ -135,7 +135,38 @@ class PersistenciaMySqlTest {
     assertEquals(anterior + 1, actual.version());
     assertEquals("Evaluación corregida", actual.diagnostico().descripcion());
     assertEquals(actual.id(), actual.diagnostico().id());
-    assertEquals(4, actual.historial().size());
+    assertEquals(o.historial().size() + 1, actual.historial().size());
+  }
+
+  @Test
+  void noSePuedeReescribirUnEventoExistente() {
+    var o = nueva();
+    var eventos = new ArrayList<>(o.historial());
+    eventos.set(0, new EventoOrden(eventos.get(0).fecha(), "Recepción adulterada", "Otro"));
+    eventos.add(new EventoOrden(LocalDateTime.now(), "Ocultar cambio", "Otro"));
+    var alterada = new OrdenServicio(o.id(), o.clienteId(), o.equipoId(), o.tecnicoId(),
+        o.fechaRecepcion(), o.fallaReportada(), o.prioridad(), o.estado(), o.observaciones(),
+        o.diagnostico(), o.trabajos(), eventos, o.version() + 1);
+    assertThrows(ReglaNegocioException.class, () -> ordenes.guardar(alterada));
+    assertEquals(o, ordenes.buscar(o.id()).orElseThrow());
+  }
+
+  @Test
+  void recepcionLargaConservaTodoElTextoEnHistorial() {
+    var f = new OrdenForm();
+    f.setClienteId(1L);
+    f.setEquipoId(1L);
+    f.setFechaRecepcion(LocalDate.now());
+    f.setFallaReportada("Falla " + "á".repeat(1400));
+    f.setObservaciones("Condición " + "🔧".repeat(600));
+    var o = servicio.registrar(usuarios.buscar(2), f);
+    String guardado = o.historial().stream()
+        .filter(e -> e.descripcion().startsWith("Recepción original ["))
+        .map(e -> e.descripcion().substring(e.descripcion().indexOf(": ") + 2))
+        .collect(java.util.stream.Collectors.joining());
+    assertTrue(guardado.contains(f.getFallaReportada()));
+    assertTrue(guardado.contains(f.getObservaciones()));
+    assertEquals(o, ordenes.buscar(o.id()).orElseThrow());
   }
 
   @Test
@@ -149,7 +180,8 @@ class PersistenciaMySqlTest {
 
   @Test
   void dosTransaccionesNoPuedenSobrescribirLaMismaVersion() throws Exception {
-    long id = nueva().id();
+    var inicial = nueva();
+    long id = inicial.id();
     var barrera = new CyclicBarrier(2);
     var pool = Executors.newFixedThreadPool(2);
     Callable<Boolean> modificar =
@@ -201,7 +233,7 @@ class PersistenciaMySqlTest {
       assertNotEquals(a.get(30, TimeUnit.SECONDS), b.get(30, TimeUnit.SECONDS));
       var actual = ordenes.buscar(id).orElseThrow();
       assertEquals(1, actual.version());
-      assertEquals(2, actual.historial().size());
+      assertEquals(inicial.historial().size() + 1, actual.historial().size());
     } finally {
       pool.shutdownNow();
     }

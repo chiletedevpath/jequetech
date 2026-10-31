@@ -33,10 +33,28 @@ Cada rol tiene sus propias funciones:
 | Rol | Funciones |
 | --- | --- |
 | Administrador | Gestión de usuarios y técnicos. |
-| Personal administrativo | Clientes, equipos, registro y asignación de órdenes, seguimiento e historial. |
-| Técnico | Consulta y atención de sus propias órdenes asignadas. |
+| Personal administrativo | Clientes, equipos, recepción, asignación, seguimiento y entrega física. |
+| Técnico | Diagnóstico, trabajos y finalización de sus propias órdenes. |
 
 Los formularios de clientes, equipos, órdenes, usuarios y técnicos tienen validaciones del servidor. Al crear una cuenta se exige contraseña; al editarla se puede dejar vacía para conservar la actual. Las peticiones que modifican datos están protegidas con CSRF. Si se desactiva una cuenta o su técnico, su sesión se invalida en la siguiente petición. Los cambios de rol también se aplican en la siguiente petición.
+
+## Reglas de atención y trazabilidad
+
+La recepción se puede corregir mientras la orden está registrada. Cada corrección exige un motivo y conserva en el historial los datos anteriores y los nuevos. La primera asignación cierra la recepción; después se añaden aclaraciones o incidentes sin sobrescribir el ingreso. Las órdenes antiguas conservan el historial que tenían: no se reconstruyen cambios anteriores a estas reglas.
+
+| Operación | Responsable | Condición |
+| --- | --- | --- |
+| Corregir recepción | Administrativo | Solo registrada, con motivo y versión vigente. |
+| Cambiar responsable | Administrativo | Antes de la entrega; técnico habilitado y motivo obligatorio al reasignar. |
+| Diagnosticar y registrar trabajos | Técnico asignado | Según la etapa; las revisiones del diagnóstico conservan el texto anterior. |
+| Finalizar reparación | Técnico asignado | Debe existir al menos un trabajo. |
+| Registrar entrega | Administrativo | Solo finalizada; exige nombre y documento de quien recibe. |
+| Añadir aclaración o incidente | Administrativo o técnico asignado | Se agrega al historial sin modificar datos anteriores; solo antes de entregar. |
+| Gestionar cuentas y técnicos | Administrador | No puede cambiar el rol o vínculo de un técnico con órdenes pendientes. Puede desactivar una cuenta para revocar el acceso. |
+
+La identidad de clientes y equipos con órdenes queda bloqueada. El historial registra la fecha y el identificador del usuario junto a su nombre; el repositorio rechaza reemplazar eventos anteriores. Los cambios de órdenes mantienen el control de versiones para evitar sobrescrituras entre ventanas.
+
+Estos controles actúan en la aplicación. Todavía no hay un circuito de aprobación independiente para excepciones, firma del cliente, fotografías ni un registro externo protegido frente a un administrador de MySQL. El nombre y documento de entrega son datos declarados por quien registra la operación.
 
 ## Qué falta
 
@@ -84,7 +102,7 @@ El archivo `.env` contiene credenciales locales y queda fuera de Git.
 
 ## Cómo comprobar los cambios
 
-La última verificación completa, del **31 de octubre de 2026**, terminó con **50 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
+La última verificación completa, del **31 de octubre de 2026**, terminó con **59 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
 
 Además, se ejecutaron las comprobaciones del primer arranque en una segunda base vacía. La configuración incompleta y la contraseña inicial demasiado corta fueron rechazadas sin crear usuarios. Con una configuración válida se creó un solo administrador y no se insertaron clientes, equipos, técnicos ni órdenes. La cuenta mantuvo su acceso después de reiniciar sin las variables iniciales.
 

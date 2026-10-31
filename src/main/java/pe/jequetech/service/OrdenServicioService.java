@@ -75,6 +75,7 @@ public class OrdenServicioService {
     validar(f);
     List<EventoOrden> eventos = new ArrayList<>();
     eventos.add(evento(actor, "Orden registrada"));
+    registrarTexto(eventos, actor, "Recepción original", recepcion(f));
     exigir(
         f.getTecnicoId() == null, "Registra la orden y luego asigna al técnico desde el detalle.");
     return ordenes.guardar(
@@ -99,8 +100,8 @@ public class OrdenServicioService {
     OrdenServicio o = buscar(actor, id);
     version(o, f.getVersion());
     exigir(
-        o.estado() == EstadoOrden.REGISTRADA || o.estado() == EstadoOrden.ASIGNADA,
-        "Solo se editan los datos de recepción antes de iniciar el diagnóstico.");
+        o.estado() == EstadoOrden.REGISTRADA,
+        "La recepción queda cerrada al asignar el técnico. Registra una aclaración sin alterar el ingreso.");
     validar(f);
     // La asignación tiene su propia operación y no se altera mediante el formulario de recepción.
     exigir(
@@ -119,14 +120,19 @@ public class OrdenServicioService {
             opcional(f.getObservaciones(), 1500),
             o.diagnostico(),
             o.trabajos(),
-            historial(o, actor, "Datos de recepción actualizados"),
+            historialRecepcion(o, actor, f),
             o.version() + 1));
   }
 
   public synchronized void asignar(Usuario actor, long id, Long tecnicoId, long version) {
+    asignar(actor, id, tecnicoId, version, "");
+  }
+
+  public synchronized void asignar(Usuario actor, long id, Long tecnicoId, long version, String motivo) {
     rol(actor, Rol.ADMINISTRATIVO);
     OrdenServicio o = buscar(actor, id);
     version(o, version);
+    if (o.tecnicoId() != null) texto(motivo, "Motivo de reasignación", 120);
     exigir(
         o.estado() != EstadoOrden.ENTREGADA,
         "No se puede reasignar una orden entregada.");
@@ -145,7 +151,7 @@ public class OrdenServicioService {
         o.tecnicoId() == null
             ? "Técnico asignado: " + catalogos.tecnico(tecnicoId).nombres()
             : "Técnico cambiado de " + catalogos.tecnico(o.tecnicoId()).nombres()
-                + " a " + catalogos.tecnico(tecnicoId).nombres());
+                + " a " + catalogos.tecnico(tecnicoId).nombres() + ". Motivo: " + motivo.strip());
   }
 
   public synchronized void diagnosticar(Usuario actor, long id, String descripcion, long version) {
@@ -164,8 +170,9 @@ public class OrdenServicioService {
         d,
         o.trabajos(),
         o.diagnostico() == null
-            ? "Diagnóstico registrado · En diagnóstico"
-            : "Diagnóstico actualizado");
+            ? "Diagnóstico registrado: " + d.descripcion()
+            : "Diagnóstico anterior: " + o.diagnostico().descripcion()
+                + "; diagnóstico actualizado: " + d.descripcion());
   }
 
   public synchronized void trabajo(Usuario actor, long id, String descripcion, long version) {
@@ -191,9 +198,14 @@ public class OrdenServicioService {
   }
 
   public synchronized void cambiarEstado(Usuario actor, long id, EstadoOrden nuevo, long version) {
-    rol(actor, Rol.TECNICO);
+    cambiarEstado(actor, id, nuevo, version, "");
+  }
+
+  public synchronized void cambiarEstado(Usuario actor, long id, EstadoOrden nuevo, long version, String receptor) {
+    rol(actor, nuevo == EstadoOrden.ENTREGADA ? Rol.ADMINISTRATIVO : Rol.TECNICO);
     OrdenServicio o = buscar(actor, id);
     version(o, version);
+    if (nuevo == EstadoOrden.ENTREGADA) texto(receptor, "Nombre y documento de quien recibe", 120);
     exigir(
         nuevo != null && o.estado() != EstadoOrden.ENTREGADA && nuevo == o.estado().siguiente(),
         "El estado solicitado no corresponde al siguiente paso del flujo.");
@@ -211,7 +223,8 @@ public class OrdenServicioService {
         nuevo,
         o.diagnostico(),
         o.trabajos(),
-        "Estado actualizado: " + nuevo.getEtiqueta());
+        "Estado actualizado: " + nuevo.getEtiqueta()
+            + (nuevo == EstadoOrden.ENTREGADA ? ". Recibe: " + receptor.strip() : ""));
   }
 
   public List<OrdenServicio> historialEquipo(Usuario actor, long equipoId) {
@@ -258,13 +271,50 @@ public class OrdenServicioService {
         "La orden cambió en otra ventana. Recarga la página antes de continuar.");
   }
 
+  private String recepcion(OrdenForm f) {
+    return "Cliente=" + f.getClienteId() + "; equipo=" + f.getEquipoId()
+        + "; fecha=" + f.getFechaRecepcion() + "; prioridad=" + f.getPrioridad()
+        + "; falla=" + f.getFallaReportada() + "; condición y accesorios=" + f.getObservaciones();
+  }
+
+  private List<EventoOrden> historialRecepcion(OrdenServicio o, Usuario actor, OrdenForm f) {
+    List<EventoOrden> h = new ArrayList<>(o.historial());
+    registrarTexto(h, actor, "Motivo de corrección", texto(f.getMotivo(), "Motivo", 120));
+    registrarTexto(h, actor, "Recepción anterior", "Cliente=" + o.clienteId() + "; equipo=" + o.equipoId()
+        + "; fecha=" + o.fechaRecepcion() + "; prioridad=" + o.prioridad()
+        + "; falla=" + o.fallaReportada() + "; condición y accesorios=" + o.observaciones());
+    registrarTexto(h, actor, "Recepción corregida", recepcion(f));
+    return h;
+  }
+
+  private void registrarTexto(List<EventoOrden> h, Usuario actor, String titulo, String texto) {
+    // Cada fragmento respeta el tamaño de la columna sin perder el texto original.
+    int parte = 1;
+    for (int inicio = 0; inicio < texto.length(); parte++) {
+      int fin = texto.offsetByCodePoints(inicio,
+          Math.min(180, texto.codePointCount(inicio, texto.length())));
+      h.add(evento(actor, titulo + " [" + parte + "]: " + texto.substring(inicio, fin)));
+      inicio = fin;
+    }
+  }
+
+  public synchronized void aclarar(Usuario actor, long id, String descripcion, long version) {
+    rol(actor, Rol.ADMINISTRATIVO, Rol.TECNICO);
+    OrdenServicio o = buscar(actor, id);
+    version(o, version);
+    exigir(o.estado() != EstadoOrden.ENTREGADA, "La orden entregada está cerrada.");
+    guardarAvance(o, actor, o.tecnicoId(), o.estado(), o.diagnostico(), o.trabajos(),
+        "Aclaración o incidente: " + texto(descripcion, "Descripción", 1500));
+  }
+
   private EventoOrden evento(Usuario actor, String mensaje) {
-    return new EventoOrden(LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS), mensaje, actor.nombre());
+    return new EventoOrden(LocalDateTime.now().truncatedTo(java.time.temporal.ChronoUnit.MICROS), mensaje,
+        "#" + actor.id() + " " + actor.nombre().substring(0, Math.min(actor.nombre().length(), 75)));
   }
 
   private List<EventoOrden> historial(OrdenServicio o, Usuario actor, String mensaje) {
     List<EventoOrden> h = new ArrayList<>(o.historial());
-    h.add(evento(actor, mensaje));
+    registrarTexto(h, actor, "Acción", mensaje);
     return h;
   }
 }

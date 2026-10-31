@@ -92,6 +92,12 @@ public class OrdenForm {
     observaciones = value;
   }
 
+  private String motivo = "";
+
+  public String getMotivo() { return motivo; }
+
+  public void setMotivo(String motivo) { this.motivo = motivo; }
+
   private long version;
 
   public long getVersion() {

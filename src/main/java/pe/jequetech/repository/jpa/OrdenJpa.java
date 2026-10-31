@@ -84,6 +84,10 @@ public class OrdenJpa extends IdJpa implements FilaJpa<OrdenServicio> {
       Reglas.exigir(
           v.historial().size() > historial.size(),
           "La actualización necesita un evento de seguimiento.");
+      Reglas.exigir(
+          v.historial().subList(0, historial.size()).equals(
+              historial.stream().map(EventoJpa::dominio).toList()),
+          "El historial existente no se puede modificar.");
     }
     cliente = em.getReference(ClienteJpa.class, v.clienteId());
     equipo = em.getReference(EquipoJpa.class, v.equipoId());

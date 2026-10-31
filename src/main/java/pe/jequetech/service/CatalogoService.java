@@ -50,6 +50,12 @@ public class CatalogoService {
                 u -> u.activo() && u.rol() == Rol.TECNICO && Long.valueOf(id).equals(u.tecnicoId()));
   }
 
+  public boolean tieneOrdenesPendientes(long tecnicoId) {
+    return ordenes.todos().stream()
+        .anyMatch(o -> Long.valueOf(tecnicoId).equals(o.tecnicoId())
+            && o.estado() != EstadoOrden.ENTREGADA);
+  }
+
   public List<Tecnico> disponibles() {
     return tecnicos().stream().filter(t -> tecnicoHabilitado(t.id())).toList();
   }
@@ -68,8 +74,15 @@ public class CatalogoService {
 
   public synchronized Cliente guardarCliente(Usuario actor, Long id, ClienteForm f) {
     rol(actor, Rol.ADMINISTRATIVO);
-    if (id != null)
-      cliente(id);
+    if (id != null) {
+      var anterior = cliente(id);
+      if (ordenes.todos().stream().anyMatch(o -> o.clienteId() == id)) {
+        exigir(anterior.documento().equals(texto(f.getDocumento(), "Documento", 20))
+            && anterior.nombres().equals(texto(f.getNombres(), "Nombres o razón social", 100))
+            && anterior.apellidos().equals(opcional(f.getApellidos(), 100)),
+            "La identidad de un cliente con órdenes registradas no se puede modificar.");
+      }
+    }
     String doc = texto(f.getDocumento(), "Documento", 20);
     exigir(
         clientes().stream()
@@ -104,6 +117,14 @@ public class CatalogoService {
     cliente(f.getClienteId());
     if (id != null) {
       Equipo old = equipo(id);
+      if (ordenes.todos().stream().anyMatch(o -> o.equipoId() == id)) {
+        exigir(old.clienteId() == f.getClienteId()
+            && old.numeroSerie().equals(texto(f.getNumeroSerie(), "Número de serie", 80))
+            && old.tipo().equals(texto(f.getTipo(), "Tipo", 50))
+            && old.marca().equals(texto(f.getMarca(), "Marca", 60))
+            && old.modelo().equals(texto(f.getModelo(), "Modelo", 80)),
+            "La identidad de un equipo con órdenes registradas no se puede modificar.");
+      }
       exigir(
           old.clienteId() == f.getClienteId()
               || ordenes.todos().stream().noneMatch(o -> o.equipoId() == id),

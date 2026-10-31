@@ -48,7 +48,7 @@ public class OrdenServicioController {
     rol(actor, Rol.ADMINISTRATIVO);
     var o = servicio.buscar(actor, id);
     exigir(
-        o.estado() == EstadoOrden.REGISTRADA || o.estado() == EstadoOrden.ASIGNADA,
+        o.estado() == EstadoOrden.REGISTRADA,
         "La recepción ya no se puede editar.");
     OrdenForm f = new OrdenForm();
     f.setClienteId(o.clienteId());
@@ -128,9 +128,10 @@ public class OrdenServicioController {
       @RequestAttribute Usuario actor,
       @PathVariable long id,
       @RequestParam(required = false) Long tecnicoId,
+      @RequestParam(defaultValue = "") String motivo,
       @RequestParam long version,
       RedirectAttributes flash) {
-    return operacion(id, flash, () -> servicio.asignar(actor, id, tecnicoId, version));
+    return operacion(id, flash, () -> servicio.asignar(actor, id, tecnicoId, version, motivo));
   }
 
   @PostMapping("/{id}/diagnostico")
@@ -158,9 +159,20 @@ public class OrdenServicioController {
       @RequestAttribute Usuario actor,
       @PathVariable long id,
       @RequestParam EstadoOrden estado,
+      @RequestParam(defaultValue = "") String receptor,
       @RequestParam long version,
       RedirectAttributes flash) {
-    return operacion(id, flash, () -> servicio.cambiarEstado(actor, id, estado, version));
+    return operacion(id, flash, () -> servicio.cambiarEstado(actor, id, estado, version, receptor));
+  }
+
+  @PostMapping("/{id}/aclaraciones")
+  public String aclarar(
+      @RequestAttribute Usuario actor,
+      @PathVariable long id,
+      @RequestParam String descripcion,
+      @RequestParam long version,
+      RedirectAttributes flash) {
+    return operacion(id, flash, () -> servicio.aclarar(actor, id, descripcion, version));
   }
 
   private String operacion(long id, RedirectAttributes flash, Runnable accion) {

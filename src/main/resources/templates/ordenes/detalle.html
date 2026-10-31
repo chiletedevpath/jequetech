@@ -22,7 +22,7 @@
             th:text="${orden.estado.etiqueta}"
           ></span
           ><a
-            th:if="${esRecepcion and orden.estado.ordinal() &lt; 2}"
+            th:if="${esRecepcion and orden.estado.name() == 'REGISTRADA'}"
             class="btn btn-outline-secondary"
             th:href="@{/ordenes/{id}/editar(id=${orden.id})}"
             >Editar recepción</a
@@ -193,10 +193,15 @@
                   th:text="${t.nombres}"
                   th:selected="${t.id == orden.tecnicoId}"
                 ></option></select
-              ><button class="btn btn-primary w-100"
+              >
+              <div th:if="${orden.tecnicoId != null}" class="mb-3">
+                <label for="motivoReasignacion" class="form-label">Motivo del cambio *</label>
+                <input id="motivoReasignacion" name="motivo" class="form-control" required maxlength="120" />
+              </div>
+              <button class="btn btn-primary w-100"
                   th:text="${orden.tecnicoId == null ? 'Asignar técnico' : 'Cambiar técnico'}">Asignar técnico</button>
             </form>
-            <div th:if="${esTecnico and siguiente != null}">
+            <div th:if="${siguiente != null and ((esTecnico and siguiente.name() != 'ENTREGADA') or (esRecepcion and siguiente.name() == 'ENTREGADA'))}">
               <hr />
               <div class="eyebrow">SIGUIENTE PASO</div>
               <p class="mt-2" th:text="${siguiente.etiqueta}"></p>
@@ -224,8 +229,18 @@
           </section>
         </div>
       </div>
+      <section class="card p-4 mt-4" th:if="${(esRecepcion or esTecnico) and orden.estado.name() != 'ENTREGADA'}">
+        <h2 class="h5">Aclaración o incidente</h2>
+        <p>Registra lo ocurrido sin modificar la recepción original.</p>
+        <form th:action="@{/ordenes/{id}/aclaraciones(id=${orden.id})}" method="post">
+          <input type="hidden" name="version" th:value="${orden.version}" />
+          <label for="aclaracion" class="form-label">Descripción *</label>
+          <textarea id="aclaracion" name="descripcion" class="form-control mb-3" required maxlength="1500"></textarea>
+          <button class="btn btn-outline-primary">Registrar aclaración</button>
+        </form>
+      </section>
       <div
-        th:if="${esTecnico and siguiente != null}"
+        th:if="${siguiente != null and ((esTecnico and siguiente.name() != 'ENTREGADA') or (esRecepcion and siguiente.name() == 'ENTREGADA'))}"
         class="modal fade"
         id="cambiarEstado"
         tabindex="-1"
@@ -254,6 +269,10 @@
                   name="version"
                   th:value="${orden.version}"
                 /><input type="hidden" name="estado" th:value="${siguiente}" />
+                <div th:if="${siguiente.name() == 'ENTREGADA'}" class="mb-3">
+                  <label for="receptor" class="form-label">Nombre y documento de quien recibe *</label>
+                  <input id="receptor" name="receptor" class="form-control" required maxlength="120" />
+                </div>
                 <p>
                   La orden <strong th:text="${orden.codigo()}"></strong> pasará
                   al estado <strong th:text="${siguiente.etiqueta}"></strong>.

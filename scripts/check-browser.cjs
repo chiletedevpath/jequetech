@@ -130,6 +130,7 @@ async function changeState(page) {
   );
   await p.getByRole("link", { name: "Editar recepción" }).click();
   await p.locator("#observaciones").fill("Recepción verificada en navegador.");
+  await p.locator("#motivo").fill("Completar detalle de ingreso");
   await save(p);
   await p.locator("#tecnicoId").selectOption("1");
   await p.getByRole("button", { name: "Asignar técnico", exact: true }).click();
@@ -178,11 +179,14 @@ async function changeState(page) {
     await t.locator(".page-heading .status").innerText(),
     "Finalizada",
   );
-  await changeState(t);
-  assert.equal(
-    await t.locator(".page-heading .status").innerText(),
-    "Entregada",
-  );
+  assert.equal(await t.getByRole("button", { name: "Actualizar estado", exact: true }).count(), 0);
+  await visit(p, orderRoute);
+  await p.getByRole("button", { name: "Actualizar estado", exact: true }).click();
+  await p.locator("#receptor").fill("Cliente de prueba, DNI 12345678");
+  await p.locator("#cambiarEstado").getByRole("button", { name: /Confirmar/ }).click();
+  await p.waitForLoadState();
+  await visit(t, orderRoute);
+  assert.equal(await t.locator(".page-heading .status").innerText(), "Entregada");
   await capture(t, "04-orden-entregada");
   summary.checks.push(
     "Diagnóstico → trabajos → modal cancelar/confirmar → finalizada → entregada",

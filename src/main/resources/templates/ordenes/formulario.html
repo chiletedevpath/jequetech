@@ -162,12 +162,12 @@
             <input type="hidden" th:field="*{tecnicoId}" />
 
             <p class="form-text">
-              La orden se registra primero. El responsable se asigna desde el detalle.
+              La primera asignación cierra la recepción. Revisa el ingreso antes de asignar al técnico.
             </p>
           </div>
 
           <div class="col-12">
-            <label class="form-label" for="observaciones">Observaciones</label>
+            <label class="form-label" for="observaciones">Condición física y accesorios recibidos</label>
 
             <textarea
               class="form-control"
@@ -186,6 +186,10 @@
           </div>
         </div>
 
+        <div th:if="${id != null}" class="mt-3">
+          <label for="motivo" class="form-label">Motivo de la corrección *</label>
+          <input id="motivo" th:field="*{motivo}" class="form-control" required maxlength="120" />
+        </div>
         <div class="form-actions">
           <a class="btn btn-outline-secondary" th:href="@{/ordenes}">Cancelar</a>
 

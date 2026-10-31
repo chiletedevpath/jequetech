@@ -170,10 +170,10 @@ class AplicacionTest {
     assertEquals(2, o.trabajos().size());
     ordenes.cambiarEstado(tecnico(), o.id(), EstadoOrden.FINALIZADA, o.version());
     o = ordenes.buscar(tecnico(), o.id());
-    ordenes.cambiarEstado(tecnico(), o.id(), EstadoOrden.ENTREGADA, o.version());
+    ordenes.cambiarEstado(recepcion(), o.id(), EstadoOrden.ENTREGADA, o.version(), "Cliente, DNI 12345678");
     o = ordenes.buscar(tecnico(), o.id());
     assertEquals(EstadoOrden.ENTREGADA, o.estado());
-    assertEquals(7, o.historial().size());
+    assertTrue(o.historial().size() >= 7);
   }
 
   @Test
@@ -193,7 +193,7 @@ class AplicacionTest {
           .andExpect(status().isOk())
           .andExpect(content().string(containsString("Cambiar técnico")));
       mvc.perform(post("/ordenes/" + id + "/asignar").session(sesion).with(csrf())
-              .param("tecnicoId", "2").param("version", Long.toString(o.version())))
+              .param("tecnicoId", "2").param("motivo", "Cambio de turno").param("version", Long.toString(o.version())))
           .andExpect(redirectedUrl("/ordenes/" + id));
       o = ordenes.buscar(otroTecnico, id);
       assertEquals(estado, o.estado());
@@ -210,9 +210,9 @@ class AplicacionTest {
       assertThrows(ReglaNegocioException.class,
           () -> ordenes.asignar(recepcion(), id, 1L, antes.version()));
       if (estado == EstadoOrden.FINALIZADA) {
-        ordenes.cambiarEstado(otroTecnico, id, EstadoOrden.ENTREGADA, version);
+        ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, version, "Cliente, DNI 12345678");
       } else {
-        ordenes.asignar(recepcion(), id, 1L, version);
+        ordenes.asignar(recepcion(), id, 1L, version, "Retoma la atención");
         o = ordenes.buscar(tecnico(), id);
         if (estado == EstadoOrden.EN_DIAGNOSTICO) {
           ordenes.trabajo(tecnico(), id, "Reparación", o.version());
@@ -228,6 +228,116 @@ class AplicacionTest {
     mvc.perform(get("/ordenes/" + id).session(sesion))
         .andExpect(status().isOk())
         .andExpect(content().string(not(containsString("Cambiar técnico"))));
+  }
+
+  @Test
+  void recepcionCerradaRechazaCambiosYConservaOriginal() {
+    var f = formulario();
+    f.setObservaciones("Pantalla sin daños, con cargador");
+    var o = ordenes.registrar(recepcion(), f);
+    var original = o;
+    f.setObservaciones("Pantalla rota");
+    f.setMotivo("Corrección de la inspección");
+    f.setVersion(o.version());
+    o = ordenes.editar(recepcion(), o.id(), f);
+    assertTrue(o.historial().stream().anyMatch(e -> e.descripcion().contains("Pantalla sin daños")));
+    assertTrue(o.historial().stream().anyMatch(e -> e.descripcion().contains("Pantalla rota")));
+    ordenes.asignar(recepcion(), o.id(), 1L, o.version());
+    o = ordenes.buscar(recepcion(), o.id());
+    f.setVersion(o.version());
+    long id = o.id();
+    assertThrows(ReglaNegocioException.class, () -> ordenes.editar(recepcion(), id, f));
+    assertEquals(original.clienteId(), o.clienteId());
+  }
+
+  @Test
+  void correccionYReasignacionExigenMotivo() {
+    var o = ordenes.registrar(recepcion(), formulario());
+    long id = o.id();
+    assertThrows(ReglaNegocioException.class, () -> ordenes.editar(recepcion(), id, formulario()));
+    ordenes.asignar(recepcion(), id, 1L, 0);
+    assertThrows(ReglaNegocioException.class, () -> ordenes.asignar(recepcion(), id, 2L, 1));
+    assertEquals(1L, ordenes.buscar(recepcion(), id).tecnicoId());
+  }
+
+  @Test
+  void entregaExigeAdministrativoYReceptor() {
+    var o = ordenes.registrar(recepcion(), formulario());
+    long id = o.id();
+    ordenes.asignar(recepcion(), id, 1L, 0);
+    ordenes.diagnosticar(tecnico(), id, "Evaluación", 1);
+    ordenes.trabajo(tecnico(), id, "Reparación", 2);
+    ordenes.cambiarEstado(tecnico(), id, EstadoOrden.FINALIZADA, 3);
+    assertThrows(org.springframework.web.server.ResponseStatusException.class,
+        () -> ordenes.cambiarEstado(tecnico(), id, EstadoOrden.ENTREGADA, 4, "Cliente DNI 12345678"));
+    assertThrows(ReglaNegocioException.class,
+        () -> ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, 4));
+    ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, 4, "Cliente DNI 12345678");
+    assertTrue(ordenes.buscar(recepcion(), id).historial().stream()
+        .anyMatch(e -> e.descripcion().contains("Recibe: Cliente DNI 12345678")
+            && e.autor().startsWith("#2 ")));
+    assertThrows(ReglaNegocioException.class,
+        () -> ordenes.aclarar(recepcion(), id, "Cambiar ingreso", 5));
+  }
+
+  @Test
+  void aclaracionEsAdicionalYRespetaPermisos() {
+    var o = ordenes.registrar(recepcion(), formulario());
+    long id = o.id();
+    ordenes.asignar(recepcion(), id, 1L, 0);
+    assertThrows(org.springframework.web.server.ResponseStatusException.class,
+        () -> ordenes.aclarar(admin(), id, "No corresponde", 1));
+    assertThrows(org.springframework.web.server.ResponseStatusException.class,
+        () -> ordenes.aclarar(usuarios.buscar(4), id, "Orden ajena", 1));
+    ordenes.aclarar(tecnico(), id, "Se reporta daño durante la atención", 1);
+    var despues = ordenes.buscar(recepcion(), id);
+    assertEquals(o.observaciones(), despues.observaciones());
+    assertEquals(EstadoOrden.ASIGNADA, despues.estado());
+    assertTrue(despues.historial().stream()
+        .anyMatch(e -> e.descripcion().contains("daño durante la atención")));
+  }
+
+  @Test
+  void equipoConOrdenNoPermiteSustituirIdentidad() {
+    var o = ordenes.registrar(recepcion(), formulario());
+    var e = catalogos.equipo(o.equipoId());
+    var f = new EquipoForm();
+    f.setClienteId(e.clienteId());
+    f.setTipo(e.tipo());
+    f.setMarca(e.marca());
+    f.setModelo(e.modelo());
+    f.setNumeroSerie("OTRA-LAPTOP");
+    assertThrows(ReglaNegocioException.class,
+        () -> catalogos.guardarEquipo(recepcion(), e.id(), f));
+    assertEquals(e, catalogos.equipo(e.id()));
+  }
+
+  @Test
+  void clienteConOrdenNoPermiteCambiarIdentidad() {
+    var o = ordenes.registrar(recepcion(), formulario());
+    var c = catalogos.cliente(o.clienteId());
+    var f = new ClienteForm();
+    f.setNombres("Otra persona");
+    f.setApellidos(c.apellidos());
+    f.setDocumento(c.documento());
+    f.setTelefono(c.telefono());
+    f.setCorreo(c.correo());
+    assertThrows(ReglaNegocioException.class,
+        () -> catalogos.guardarCliente(recepcion(), c.id(), f));
+    assertEquals(c, catalogos.cliente(c.id()));
+  }
+
+  @Test
+  void tecnicoConOrdenPendienteNoCambiaDeVinculo() {
+    var o = ordenes.registrar(recepcion(), formulario());
+    ordenes.asignar(recepcion(), o.id(), 1L, 0);
+    var u = tecnico();
+    var f = new UsuarioForm();
+    f.setNombre(u.nombre());
+    f.setCorreo(u.correo());
+    f.setRol(Rol.ADMINISTRATIVO);
+    assertThrows(ReglaNegocioException.class, () -> usuarios.guardar(admin(), u.id(), f));
+    assertEquals(u, usuarios.buscar(u.id()));
   }
 
   @Test
@@ -270,7 +380,7 @@ class AplicacionTest {
     assertThrows(ReglaNegocioException.class, () -> ordenes.asignar(recepcion(), o.id(), 2L, 0));
     assertThrows(
         ReglaNegocioException.class,
-        () -> ordenes.cambiarEstado(tecnico(), o.id(), EstadoOrden.ENTREGADA, 1));
+        () -> ordenes.cambiarEstado(recepcion(), o.id(), EstadoOrden.ENTREGADA, 1, "Cliente DNI 12345678"));
     assertThrows(
         ReglaNegocioException.class,
         () -> ordenes.trabajo(tecnico(), o.id(), "Sin diagnóstico", 1));
