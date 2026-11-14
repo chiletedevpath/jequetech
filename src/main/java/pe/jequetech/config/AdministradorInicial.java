@@ -5,6 +5,10 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 import pe.jequetech.service.UsuarioService;
 
+/**
+ * Crea el primer administrador en una base vacía. Las credenciales de arranque
+ * dejan de ser necesarias cuando la base ya contiene usuarios.
+ */
 @Component
 public class AdministradorInicial implements CommandLineRunner {
   private final UsuarioService usuarios;

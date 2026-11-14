@@ -12,7 +12,10 @@ import org.springframework.web.server.ResponseStatusException;
 import pe.jequetech.model.Usuario;
 import pe.jequetech.service.UsuarioService;
 
-/** Revalida la cuenta y su rol en MySQL antes de autorizar cada petición. */
+/**
+ * Revalida la cuenta y su rol en MySQL antes de autorizar cada petición.
+ * Si la cuenta deja de estar habilitada o ya no existe, invalida la sesión.
+ */
 final class UsuarioActualFilter extends OncePerRequestFilter {
   private final UsuarioService usuarios;
 

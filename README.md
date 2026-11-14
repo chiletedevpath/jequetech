@@ -104,7 +104,7 @@ El archivo `.env` contiene credenciales locales y queda fuera de Git.
 
 ## Cómo comprobar los cambios
 
-La última verificación completa, del **13 de noviembre de 2026**, terminó con **59 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
+La última verificación completa, del **14 de noviembre de 2026**, terminó con **59 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
 
 Además, se ejecutaron las comprobaciones del primer arranque en una segunda base vacía. La configuración incompleta y la contraseña inicial demasiado corta fueron rechazadas sin crear usuarios. Con una configuración válida se creó un solo administrador y no se insertaron clientes, equipos, técnicos ni órdenes. La cuenta mantuvo su acceso después de reiniciar sin las variables iniciales.
 
@@ -130,10 +130,6 @@ Para compilar sin ejecutar las pruebas:
 .\mvnw.cmd -B -DskipTests package
 ```
 
-El archivo ejecutable se genera en `target/jequetech-0.1.0.jar`. Para preparar un ZIP de las fuentes sin credenciales ni compilados:
+El archivo ejecutable se genera en `target/jequetech-0.1.0.jar`.
 
-```powershell
-.\scripts\package.ps1
-```
-
-El paquete queda en `exports/jequetech-fuentes.zip`.
+Para la entrega, descarga las fuentes desde GitHub cuando se publique el repositorio. Configura las credenciales locales a partir de `.env.example`.

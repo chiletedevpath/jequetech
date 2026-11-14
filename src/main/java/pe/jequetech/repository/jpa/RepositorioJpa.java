@@ -9,6 +9,7 @@ import pe.jequetech.model.Identificable;
 import pe.jequetech.repository.Repositorio;
 import pe.jequetech.service.Reglas;
 
+/** Convierte entre objetos del dominio y entidades administradas por JPA. */
 @Transactional
 public class RepositorioJpa<T extends Identificable, E extends FilaJpa<T>>
     implements Repositorio<T> {
@@ -52,6 +53,7 @@ public class RepositorioJpa<T extends Identificable, E extends FilaJpa<T>>
     entidad.actualizar(valor, em);
     if (valor.id() == 0)
       em.persist(entidad);
+    // Aplica la escritura antes de devolver el ID o la versión generados.
     em.flush();
     return entidad.dominio();
   }

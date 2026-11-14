@@ -201,6 +201,10 @@ public class OrdenServicioService {
     cambiarEstado(actor, id, nuevo, version, "", "");
   }
 
+  /**
+   * El técnico avanza la atención y el administrativo registra la entrega física.
+   * Solo se admite el siguiente estado para conservar la secuencia del historial.
+   */
   public synchronized void cambiarEstado(
       Usuario actor, long id, EstadoOrden nuevo, long version,
       String nombreReceptor, String documentoReceptor) {

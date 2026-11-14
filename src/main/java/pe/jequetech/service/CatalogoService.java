@@ -99,6 +99,10 @@ public class CatalogoService {
             correo(f.getCorreo())));
   }
 
+  /**
+   * Conserva el cliente mientras tenga equipos asociados. La clave foránea
+   * también protege esa relación en MySQL.
+   */
   public synchronized void eliminarCliente(Usuario actor, long id) {
     rol(actor, Rol.ADMINISTRATIVO);
 

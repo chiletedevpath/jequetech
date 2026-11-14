@@ -130,4 +130,4 @@ Resultado: `exports/evidencias/resultado-navegador.json`, PASS, sin fallos regis
 
 ## Entrega
 
-`scripts/package.ps1` genera actualmente `exports/jequetech-fuentes.zip` con código, Maven Wrapper, documentación, scripts y esquema MySQL. Excluye `.env`, datos temporales, dependencias descargadas de trabajo, compilados y documentos académicos originales. El ZIP APF2 anterior se conserva como entrega histórica. El JAR ejecutable se encuentra en `target/jequetech-0.1.0.jar` después de la compilación.
+El JAR se genera en `target/jequetech-0.1.0.jar` después de la compilación. Las fuentes de entrega se obtienen del repositorio Git.

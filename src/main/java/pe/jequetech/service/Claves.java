@@ -5,6 +5,7 @@ import java.util.Base64;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 
+/** Deriva contraseñas con PBKDF2 y una sal aleatoria para cada hash. */
 final class Claves {
   private Claves() {}
 

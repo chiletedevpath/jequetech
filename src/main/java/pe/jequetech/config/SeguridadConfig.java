@@ -14,6 +14,10 @@ import org.springframework.security.web.access.intercept.AuthorizationFilter;
 import org.springframework.security.web.savedrequest.NullRequestCache;
 import pe.jequetech.service.UsuarioService;
 
+/**
+ * Define el acceso por módulo. Los servicios de órdenes comprueban además
+ * quién puede intervenir en cada orden.
+ */
 @Configuration
 public class SeguridadConfig {
   @Bean
@@ -24,6 +28,7 @@ public class SeguridadConfig {
         var usuario =
             usuarios.autenticar(intento.getName(), (String) intento.getCredentials())
                 .orElseThrow(() -> new BadCredentialsException("Credenciales incorrectas"));
+        // El contexto conserva el identificador y el rol, sin guardar la contraseña.
         return UsernamePasswordAuthenticationToken.authenticated(
             usuario.id(), null, List.of(new SimpleGrantedAuthority("ROLE_" + usuario.rol().name())));
       }
