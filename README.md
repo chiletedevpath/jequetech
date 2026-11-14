@@ -50,7 +50,7 @@ La recepción se puede corregir mientras la orden está registrada. Cada correcc
 | Cambiar responsable | Administrativo | Antes de la entrega; técnico habilitado y motivo obligatorio al reasignar. |
 | Diagnosticar y registrar trabajos | Técnico asignado | Según la etapa; las revisiones del diagnóstico conservan el texto anterior. |
 | Finalizar reparación | Técnico asignado | Debe existir al menos un trabajo. |
-| Registrar entrega | Administrativo | Solo finalizada; exige nombre y documento de quien recibe. |
+| Registrar entrega | Administrativo | Solo finalizada. Requiere nombre y documento de quien recibe en campos separados. |
 | Añadir aclaración o incidente | Administrativo o técnico asignado | Se agrega al historial sin modificar datos anteriores; solo antes de entregar. |
 | Gestionar cuentas y técnicos | Administrador | No puede cambiar el rol o vínculo de un técnico con órdenes pendientes. Puede desactivar una cuenta para revocar el acceso. |
 
@@ -104,7 +104,7 @@ El archivo `.env` contiene credenciales locales y queda fuera de Git.
 
 ## Cómo comprobar los cambios
 
-La última verificación completa, del **31 de octubre de 2026**, terminó con **59 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
+La última verificación completa, del **13 de noviembre de 2026**, terminó con **59 pruebas aprobadas**, sin fallos, errores ni omisiones. El recorrido de navegador completó 11 grupos de comprobaciones y generó 28 capturas. Los datos conservaron el mismo hash después de reiniciar la aplicación y MySQL.
 
 Además, se ejecutaron las comprobaciones del primer arranque en una segunda base vacía. La configuración incompleta y la contraseña inicial demasiado corta fueron rechazadas sin crear usuarios. Con una configuración válida se creó un solo administrador y no se insertaron clientes, equipos, técnicos ni órdenes. La cuenta mantuvo su acceso después de reiniciar sin las variables iniciales.
 

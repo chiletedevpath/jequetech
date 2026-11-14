@@ -198,14 +198,15 @@ public class OrdenServicioService {
   }
 
   public synchronized void cambiarEstado(Usuario actor, long id, EstadoOrden nuevo, long version) {
-    cambiarEstado(actor, id, nuevo, version, "");
+    cambiarEstado(actor, id, nuevo, version, "", "");
   }
 
-  public synchronized void cambiarEstado(Usuario actor, long id, EstadoOrden nuevo, long version, String receptor) {
+  public synchronized void cambiarEstado(
+      Usuario actor, long id, EstadoOrden nuevo, long version,
+      String nombreReceptor, String documentoReceptor) {
     rol(actor, nuevo == EstadoOrden.ENTREGADA ? Rol.ADMINISTRATIVO : Rol.TECNICO);
     OrdenServicio o = buscar(actor, id);
     version(o, version);
-    if (nuevo == EstadoOrden.ENTREGADA) texto(receptor, "Nombre y documento de quien recibe", 120);
     exigir(
         nuevo != null && o.estado() != EstadoOrden.ENTREGADA && nuevo == o.estado().siguiente(),
         "El estado solicitado no corresponde al siguiente paso del flujo.");
@@ -216,6 +217,14 @@ public class OrdenServicioService {
       exigir(o.diagnostico() != null, "Registra el diagnóstico antes de iniciar la atención.");
     if (nuevo == EstadoOrden.FINALIZADA)
       exigir(!o.trabajos().isEmpty(), "Registra al menos un trabajo antes de finalizar.");
+    String evento = "Estado actualizado: " + nuevo.getEtiqueta();
+    if (nuevo == EstadoOrden.ENTREGADA) {
+      String nombre = texto(nombreReceptor, "Nombre de quien recibe", 100);
+      String documento = texto(documentoReceptor, "Documento de quien recibe", 20);
+      exigir(documento.matches("[A-Za-z0-9-]+") && documento.matches(".*[A-Za-z0-9].*"),
+          "El documento de quien recibe debe contener letras o números. Se permiten guiones.");
+      evento += ". Recibe: " + nombre + ". Documento: " + documento;
+    }
     guardarAvance(
         o,
         actor,
@@ -223,8 +232,7 @@ public class OrdenServicioService {
         nuevo,
         o.diagnostico(),
         o.trabajos(),
-        "Estado actualizado: " + nuevo.getEtiqueta()
-            + (nuevo == EstadoOrden.ENTREGADA ? ". Recibe: " + receptor.strip() : ""));
+        evento);
   }
 
   public List<OrdenServicio> historialEquipo(Usuario actor, long equipoId) {

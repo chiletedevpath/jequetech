@@ -270,8 +270,12 @@
                   th:value="${orden.version}"
                 /><input type="hidden" name="estado" th:value="${siguiente}" />
                 <div th:if="${siguiente.name() == 'ENTREGADA'}" class="mb-3">
-                  <label for="receptor" class="form-label">Nombre y documento de quien recibe *</label>
-                  <input id="receptor" name="receptor" class="form-control" required maxlength="120" />
+                  <label for="nombreReceptor" class="form-label">Nombre de quien recibe *</label>
+                  <input id="nombreReceptor" name="nombreReceptor" class="form-control" required maxlength="100" />
+                  <label for="documentoReceptor" class="form-label mt-2">Documento de quien recibe *</label>
+                  <input id="documentoReceptor" name="documentoReceptor" class="form-control"
+                         required maxlength="20" pattern="[A-Za-z0-9\-]*[A-Za-z0-9][A-Za-z0-9\-]*"
+                         title="Usa letras, números o guiones." />
                 </div>
                 <p>
                   La orden <strong th:text="${orden.codigo()}"></strong> pasará

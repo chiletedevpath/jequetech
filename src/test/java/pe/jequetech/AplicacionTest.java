@@ -173,7 +173,7 @@ class AplicacionTest {
     assertEquals(2, o.trabajos().size());
     ordenes.cambiarEstado(tecnico(), o.id(), EstadoOrden.FINALIZADA, o.version());
     o = ordenes.buscar(tecnico(), o.id());
-    ordenes.cambiarEstado(recepcion(), o.id(), EstadoOrden.ENTREGADA, o.version(), "Cliente, DNI 12345678");
+    ordenes.cambiarEstado(recepcion(), o.id(), EstadoOrden.ENTREGADA, o.version(), "Cliente", "12345678");
     o = ordenes.buscar(tecnico(), o.id());
     assertEquals(EstadoOrden.ENTREGADA, o.estado());
     assertTrue(o.historial().size() >= 7);
@@ -213,7 +213,7 @@ class AplicacionTest {
       assertThrows(ReglaNegocioException.class,
           () -> ordenes.asignar(recepcion(), id, 1L, antes.version()));
       if (estado == EstadoOrden.FINALIZADA) {
-        ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, version, "Cliente, DNI 12345678");
+        ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, version, "Cliente", "12345678");
       } else {
         ordenes.asignar(recepcion(), id, 1L, version, "Retoma la atención");
         o = ordenes.buscar(tecnico(), id);
@@ -272,12 +272,18 @@ class AplicacionTest {
     ordenes.trabajo(tecnico(), id, "Reparación", 2);
     ordenes.cambiarEstado(tecnico(), id, EstadoOrden.FINALIZADA, 3);
     assertThrows(org.springframework.web.server.ResponseStatusException.class,
-        () -> ordenes.cambiarEstado(tecnico(), id, EstadoOrden.ENTREGADA, 4, "Cliente DNI 12345678"));
+        () -> ordenes.cambiarEstado(tecnico(), id, EstadoOrden.ENTREGADA, 4, "Cliente", "12345678"));
     assertThrows(ReglaNegocioException.class,
         () -> ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, 4));
-    ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, 4, "Cliente DNI 12345678");
+    var finalizada = ordenes.buscar(recepcion(), id);
+    for (var datos : new String[][] {{"Cliente", " "}, {" ", "12345678"}, {"Cliente", "12?45"}, {"Cliente", "---"}}) {
+      assertThrows(ReglaNegocioException.class,
+          () -> ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, 4, datos[0], datos[1]));
+      assertEquals(finalizada, ordenes.buscar(recepcion(), id));
+    }
+    ordenes.cambiarEstado(recepcion(), id, EstadoOrden.ENTREGADA, 4, "Cliente", "12345678");
     assertTrue(ordenes.buscar(recepcion(), id).historial().stream()
-        .anyMatch(e -> e.descripcion().contains("Recibe: Cliente DNI 12345678")
+        .anyMatch(e -> e.descripcion().contains("Recibe: Cliente. Documento: 12345678")
             && e.autor().startsWith("#2 ")));
     assertThrows(ReglaNegocioException.class,
         () -> ordenes.aclarar(recepcion(), id, "Cambiar ingreso", 5));
@@ -383,7 +389,7 @@ class AplicacionTest {
     assertThrows(ReglaNegocioException.class, () -> ordenes.asignar(recepcion(), o.id(), 2L, 0));
     assertThrows(
         ReglaNegocioException.class,
-        () -> ordenes.cambiarEstado(recepcion(), o.id(), EstadoOrden.ENTREGADA, 1, "Cliente DNI 12345678"));
+        () -> ordenes.cambiarEstado(recepcion(), o.id(), EstadoOrden.ENTREGADA, 1, "Cliente", "12345678"));
     assertThrows(
         ReglaNegocioException.class,
         () -> ordenes.trabajo(tecnico(), o.id(), "Sin diagnóstico", 1));

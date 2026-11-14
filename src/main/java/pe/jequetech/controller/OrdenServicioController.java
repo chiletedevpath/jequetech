@@ -159,10 +159,11 @@ public class OrdenServicioController {
       @RequestAttribute Usuario actor,
       @PathVariable long id,
       @RequestParam EstadoOrden estado,
-      @RequestParam(defaultValue = "") String receptor,
+      @RequestParam(defaultValue = "") String nombreReceptor,
+      @RequestParam(defaultValue = "") String documentoReceptor,
       @RequestParam long version,
       RedirectAttributes flash) {
-    return operacion(id, flash, () -> servicio.cambiarEstado(actor, id, estado, version, receptor));
+    return operacion(id, flash, () -> servicio.cambiarEstado(actor, id, estado, version, nombreReceptor, documentoReceptor));
   }
 
   @PostMapping("/{id}/aclaraciones")

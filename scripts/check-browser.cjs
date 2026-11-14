@@ -66,6 +66,42 @@ async function changeState(page) {
     headless: true,
     channel: process.env.BROWSER_CHANNEL || "msedge",
   });
+  const adminContext = await browser.newContext({
+    viewport: { width: 1440, height: 1000 },
+  });
+  const a = await login(adminContext, "admin@jequetech.test");
+  await visit(a, "/tecnicos/nuevo");
+  await a.locator("#nombres").fill("Técnico prueba " + stamp);
+  await a.locator("#especialidad").fill("Hardware");
+  await a.locator("#telefono").fill("900000088");
+  await save(a);
+  const tr = a.getByRole("row").filter({ hasText: "Técnico prueba " + stamp });
+  const editTech = await tr
+    .getByRole("link", { name: "Editar" })
+    .getAttribute("href");
+  const techId = editTech.match(/\/(\d+)\/editar/)[1];
+  await tr.getByRole("link", { name: "Editar" }).click();
+  await a.locator("#especialidad").fill("Hardware y redes");
+  await save(a);
+  await visit(a, "/usuarios/nuevo");
+  await a.locator("#nombre").fill("Usuario prueba " + stamp);
+  const newEmail = "tecnico" + stamp + "@example.test";
+  await a.locator("#correo").fill(newEmail);
+  await a.locator("#clave").fill("Demo2026!");
+  await a.locator("#rol").selectOption("TECNICO");
+  await a.locator("#tecnicoId").selectOption(techId);
+  await save(a);
+  const ur = a.getByRole("row").filter({ hasText: newEmail });
+  const editUser = await ur
+    .getByRole("link", { name: "Editar" })
+    .getAttribute("href");
+  const newContext = await browser.newContext();
+  const n = await login(newContext, newEmail);
+  await visit(n, "/ordenes");
+  assert.match(
+    await n.locator("body").innerText(),
+    /No se encontraron órdenes/,
+  );
   const receptionContext = await browser.newContext({
     viewport: { width: 1440, height: 1000 },
   });
@@ -132,7 +168,7 @@ async function changeState(page) {
   await p.locator("#observaciones").fill("Recepción verificada en navegador.");
   await p.locator("#motivo").fill("Completar detalle de ingreso");
   await save(p);
-  await p.locator("#tecnicoId").selectOption("1");
+  await p.locator("#tecnicoId").selectOption(techId);
   await p.getByRole("button", { name: "Asignar técnico", exact: true }).click();
   await p.waitForLoadState();
   assert.equal(
@@ -142,10 +178,7 @@ async function changeState(page) {
   summary.checks.push(
     "Registrar, editar y asignar orden con equipo del cliente",
   );
-  const technicalContext = await browser.newContext({
-    viewport: { width: 1440, height: 1000 },
-  });
-  const t = await login(technicalContext, "tecnico@jequetech.test");
+  const t = n;
   await visit(t, orderRoute);
   await t.locator("#diagnostico").fill("Conector de alimentación averiado.");
   await t.getByRole("button", { name: "Guardar diagnóstico" }).click();
@@ -182,14 +215,22 @@ async function changeState(page) {
   assert.equal(await t.getByRole("button", { name: "Actualizar estado", exact: true }).count(), 0);
   await visit(p, orderRoute);
   await p.getByRole("button", { name: "Actualizar estado", exact: true }).click();
-  await p.locator("#receptor").fill("Cliente de prueba, DNI 12345678");
+  await p.locator("#nombreReceptor").fill("Cliente de prueba");
+  await p.locator("#documentoReceptor").fill("12345678");
   await p.locator("#cambiarEstado").getByRole("button", { name: /Confirmar/ }).click();
   await p.waitForLoadState();
   await visit(t, orderRoute);
   assert.equal(await t.locator(".page-heading .status").innerText(), "Entregada");
+  const historial = t.locator(".timeline");
+  const entrega = historial.locator("li").filter({
+    hasText: "Recibe: Cliente de prueba. Documento: 12345678",
+  });
+  await entrega.getByText("Recepción demo", { exact: false }).waitFor();
+  const finalizacion = historial.locator("li").filter({ hasText: "Estado actualizado: Finalizada" });
+  await finalizacion.getByText("Usuario prueba " + stamp, { exact: false }).waitFor();
   await capture(t, "04-orden-entregada");
   summary.checks.push(
-    "Diagnóstico → trabajos → modal cancelar/confirmar → finalizada → entregada",
+    "Administrador crea cuenta técnica; recepción asigna y entrega; técnico finaliza; autores visibles en historial",
   );
   await visit(p, "/equipos/" + equipmentId + "/historial");
   assert.equal(await p.locator("tbody tr").count(), 1);
@@ -236,10 +277,6 @@ async function changeState(page) {
   assert.equal(await p.locator("#nombres").inputValue(), "Valor conservado");
   await capture(p, "apf3-validator-servidor");
   summary.checks.push("Validator del servidor muestra errores y conserva valores");
-  const adminContext = await browser.newContext({
-    viewport: { width: 1440, height: 1000 },
-  });
-  const a = await login(adminContext, "admin@jequetech.test");
   await visit(a, "/tecnicos/nuevo");
   await a.locator("form.form-card").evaluate(form => { form.noValidate = true; });
   await a.locator("#nombres").fill("Nombre conservado");
@@ -264,49 +301,18 @@ async function changeState(page) {
   await capture(a, "admin-usuario-invalido");
   summary.checks.push("Validación del servidor de usuarios y técnicos; campos conservados y contraseña vacía");
 
-  await visit(a, "/tecnicos/nuevo");
-  await a.locator("#nombres").fill("Técnico prueba " + stamp);
-  await a.locator("#especialidad").fill("Hardware");
-  await a.locator("#telefono").fill("900000088");
-  await save(a);
-  const tr = a.getByRole("row").filter({ hasText: "Técnico prueba " + stamp });
-  const editTech = await tr
-    .getByRole("link", { name: "Editar" })
-    .getAttribute("href");
-  const techId = editTech.match(/\/(\d+)\/editar/)[1];
-  await tr.getByRole("link", { name: "Editar" }).click();
-  await a.locator("#especialidad").fill("Hardware y redes");
-  await save(a);
-  await visit(a, "/usuarios/nuevo");
-  await a.locator("#nombre").fill("Usuario prueba " + stamp);
-  const newEmail = "tecnico" + stamp + "@example.test";
-  await a.locator("#correo").fill(newEmail);
-  await a.locator("#clave").fill("Demo2026!");
-  await a.locator("#rol").selectOption("TECNICO");
-  await a.locator("#tecnicoId").selectOption(techId);
-  await save(a);
-  const ur = a.getByRole("row").filter({ hasText: newEmail });
-  const editUser = await ur
-    .getByRole("link", { name: "Editar" })
-    .getAttribute("href");
-  const newContext = await browser.newContext();
-  const n = await login(newContext, newEmail);
-  await visit(n, "/ordenes");
-  assert.match(
-    await n.locator("body").innerText(),
-    /No se encontraron órdenes/,
-  );
   await visit(a, editUser);
   await a.locator("#activo").selectOption("false");
   await save(a);
   await n.goto(base + "/dashboard");
   assert.ok(n.url().endsWith("/login"));
   summary.checks.push(
-    "Crear/editar técnico y usuario; técnico sin órdenes; cuenta inactiva revoca sesión",
+    "Técnico nuevo sin órdenes; cuenta inactiva revoca sesión",
   );
+  const tecnicoExistente = await login(await browser.newContext(), "tecnico@jequetech.test");
   for (const [page, route, expected] of [
-    [t, "/usuarios", 403],
-    [t, "/ordenes/2", 403],
+    [tecnicoExistente, "/usuarios", 403],
+    [tecnicoExistente, "/ordenes/2", 403],
     [a, "/clientes", 403],
     [p, "/ordenes/9999999", 404],
   ]) {
