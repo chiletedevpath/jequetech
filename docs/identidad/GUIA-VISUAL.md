@@ -1,14 +1,8 @@
-# JequeTech Solutions S.A.C. — propuesta de identidad
+# JequeTech Solutions S.A.C. — guía visual
 
-## Concepto
+El monograma JT se usa en la pantalla de acceso y en el menú. Los recursos de la aplicación son el [logo PNG](../../src/main/resources/static/img/jequetech-logo.png) y el [favicon SVG](../../src/main/resources/static/img/favicon.svg).
 
-Monograma geométrico JT y nombre empresarial. La referencia recibida aporta la familia azul/turquesa; se simplifica su composición para mejorar su uso en la aplicación. Las imágenes del Avance 2 son maquetación, no producto final ni identidad obligatoria.
-
-Esta propuesta visual no constituye una comprobación de exclusividad de marca. El PNG generado es un recurso raster; la versión vectorial del logo completo queda pendiente. La aplicación ya incluye un favicon SVG simplificado.
-
-El archivo principal del logo se conserva únicamente en [static/img/jequetech-logo.png](../../src/main/resources/static/img/jequetech-logo.png), junto al [favicon](../../src/main/resources/static/img/favicon.svg).
-
-## Paleta propuesta
+## Paleta de la aplicación
 
 | Uso | Color | HEX |
 | --- | --- | --- |
@@ -29,7 +23,3 @@ Contraste calculado contra blanco: azul profundo 11.84:1; petróleo 4.75:1; text
 - Formularios y tablas: fondos claros, texto azul carbón y bordes discretos.
 - Estados de órdenes: combinar siempre etiqueta textual con el color; la paleta de marca no sustituye los estados semánticos.
 - Mantener proporciones y margen libre alrededor del logo. No añadir sombras ni deformarlo.
-
-## Origen e integración
-
-El logo está integrado en el acceso y la navegación de Spring Boot y la paleta se aplica al sistema. El alcance académico y las verificaciones de la implementación se documentan en [Alcance APF2](../ALCANCE-APF2.md) y [Verificación](../VERIFICACION.md).

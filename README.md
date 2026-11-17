@@ -43,4 +43,4 @@ Abre [JequeTech](http://127.0.0.1:8080/login) e inicia sesión con el administra
 .\scripts\check-persistence.ps1
 ```
 
-El script usa un MySQL temporal y comprueba las validaciones, los permisos, el flujo de órdenes y la persistencia tras reiniciar. La última ejecución completa, el 14 de noviembre de 2026, registró **59 pruebas aprobadas** y **11 grupos de comprobaciones en el navegador**. Para repetir el recorrido web, ejecuta el script con `-Browser` en un entorno con Node.js, Playwright y Microsoft Edge.
+El script usa un MySQL temporal. La última ejecución completa, el 14 de noviembre de 2026, registró **59 pruebas aprobadas** y **11 grupos de comprobaciones en el navegador**. Los pasos para repetir el recorrido y consultar los resultados están en la [guía de verificación](docs/VERIFICACION.md).
