@@ -22,7 +22,9 @@ El código está separado en controladores, servicios, modelos y repositorios. E
 
 ## Ejecución local
 
-Necesitas Java 17, Docker Desktop y PowerShell. Clona este repositorio o descarga el código desde GitHub. En la carpeta del proyecto, crea la configuración local si todavía no existe:
+Necesitas Java 17, Docker Desktop y PowerShell. Descarga el proyecto desde **Code → Download ZIP**, extrae su contenido y abre PowerShell en la carpeta que contiene `pom.xml`. También puedes clonar el repositorio.
+
+Crea la configuración local si todavía no existe:
 
 ```powershell
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
@@ -35,7 +37,21 @@ docker compose up -d --wait
 .\scripts\start-mysql.ps1
 ```
 
+En una instalación nueva, MySQL crea las tablas y la aplicación registra únicamente el administrador configurado. Desde la web se crean los demás usuarios, clientes, equipos y órdenes.
+
 Abre [JequeTech](http://127.0.0.1:8080/login) e inicia sesión con el administrador configurado. Desde esa cuenta puedes crear los usuarios administrativos y técnicos. Para detener la aplicación, pulsa Ctrl+C. Usa `docker compose stop` para detener MySQL conservando sus datos.
+
+## Conexión a MySQL
+
+Docker publica la base `jequetech` en `127.0.0.1:3307`. Para consultarla en MySQL Workbench, usa ese servidor y puerto, el usuario `jequetech` y la contraseña definida en `MYSQL_PASSWORD`. Si cambias `MYSQL_PORT` en `.env`, usa el mismo puerto en Workbench.
+
+```sql
+USE jequetech;
+
+SELECT id, nombre, correo, rol, activo
+FROM usuario
+ORDER BY id;
+```
 
 ## Pruebas
 
@@ -43,4 +59,4 @@ Abre [JequeTech](http://127.0.0.1:8080/login) e inicia sesión con el administra
 .\scripts\check-persistence.ps1
 ```
 
-El script usa un MySQL temporal. La última ejecución completa, el 14 de noviembre de 2026, registró **59 pruebas aprobadas** y **11 grupos de comprobaciones en el navegador**. Los pasos para repetir el recorrido y consultar los resultados están en la [guía de verificación](docs/VERIFICACION.md).
+El script usa un MySQL temporal. La última ejecución completa, el 27 de noviembre de 2026, registró **59 pruebas aprobadas** y **11 grupos de comprobaciones en el navegador**. Los pasos para repetir el recorrido y consultar los resultados están en la [guía de verificación](docs/VERIFICACION.md).
